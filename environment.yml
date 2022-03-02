@@ -1,0 +1,33 @@
+name: caribou-ice
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python>=3.10
+  - numpy
+  - matplotlib
+  - pandas
+  - pyproj
+  - fiona
+  - shapely
+  - descartes
+  - rtree
+  - psycopg2
+  - GeoAlchemy2
+  - geopandas
+  - geoplot
+  - geojson
+  - pysal
+  - mapclassify
+  - osmnx
+  - pyrosm
+  - geopy
+  - geojson
+  - rasterio
+  - contextily
+  - folium
+  - mplleaflet
+  - spyder
+  - seaborn
+  - pip
