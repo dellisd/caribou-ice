@@ -31,3 +31,4 @@ dependencies:
   - spyder
   - seaborn
   - pip
+  - qgis
