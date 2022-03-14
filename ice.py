@@ -2,7 +2,7 @@ from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import *
 
 
-def config_qgis() -> QgsApplication:
+def config_qgis():
     """
     Initialize an instance of QGIS
 
@@ -15,7 +15,7 @@ def config_qgis() -> QgsApplication:
     return qgs
 
 
-def qgis_load_layout(path: str) -> QgsPrintLayout:
+def qgis_load_layout(path):
     """
     Loads a QgsPrintLayout from a template file.
 
@@ -32,7 +32,7 @@ def qgis_load_layout(path: str) -> QgsPrintLayout:
     return layout
 
 
-def export_map_test(title: str, data_path: str, output_path: str) -> None:
+def export_map_test(title, data_path, output_path):
     """
     Exports a map based on the test layout template
 
