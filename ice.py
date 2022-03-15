@@ -1,3 +1,5 @@
+# noinspection PyUnresolvedReferences
+import patch_env
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import *
 
