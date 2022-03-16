@@ -87,7 +87,7 @@ def export_csv(icepath_output):
     None.
 
     """
-    with open('output.csv', 'w', newline='') as file:
+    with open(filename, 'w') as file:
         header = ['chart_name', 'date', 'path_viability', 'length']
         writer = csv.writer(file)
         for path in icepath_output:
