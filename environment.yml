@@ -6,3 +6,8 @@ channels:
 dependencies:
   - python>=3.10
   - qgis
+  - scikit-image
+  - numpy
+  - osgeo
+  - pandas
+  
