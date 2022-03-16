@@ -72,7 +72,7 @@ def main():
     qgs.exitQgis()
 
 import csv    
-def export_csv(icepath_output):
+def export_csv(icepath_output, filename):
     """ 
     Exports ice path data to a comma-seperated values (csv) file
     
