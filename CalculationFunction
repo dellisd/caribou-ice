@@ -52,7 +52,21 @@ def coordinateToPixelOffset(InputRaster,x,y):
     yOffsetReal = ((y - originY)/pixelHeight)
     return xOffset,yOffset,xOffsetReal,yOffsetReal
 defPixelOffsetToCoordinate(xOffsetReal, yOffsetReal):
-    
+    InputRaster = 'C:/Users/derekellis/Downloads/Testing/ShouldWork.tif'
+    # Declare a local raster variable by gdal reading the input raster
+    raster = gdal.Open(InputRaster)
+    # The geotransform variable is retrieved from the raster's information as a gdal object
+    geotransform = raster.GetGeoTransform()
+    # originX variable declared from 0th element on geotransform 
+    originX = geotransform[0]
+    # originY variable declared from the 3rd element from the geotransform 
+    originY = geotransform[3]
+    # The pixel width is declared using 1st geotransform element
+    pixelWidth = geotransform[1] 
+    # Pixel height is declared using 5th geotransform element
+    pixelHeight = geotransform[5]
+    coordX = originX+pixelWidth*xOffsetReal
+    coordY = originY+pixelHeight*yOffsetReal
 # This function creates the cost surface path, taking in the cost surface raster, array, and start and stop coordinates as inputs
 def createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate):   
     # X coordinate is the 0th element of startCoordinate array (x, y)
