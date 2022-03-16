@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+"""
+Function: Calculating Least Cost Path and returning a vector line
+
+Purpose: This function will take inputs of a cost raster based on
+Canadian ice charts and  will (if possible) output a least-cost path line shapefile that can be accessed and used in 
+a QGIS map layout. 
+
+Created on Thu Mar 10 17:46:39 2022
+
+@author: Matthew
+
+"""
+# Skimage is required to create an LCP (can be deleted once in full script?)
+from skimage.graph import route_through_array
+# Osgeo functions needed for raster functionality
+from osgeo import gdal
+from osgeo import osr
+# Numpy is used to query and change arrays
+import numpy as np
+
+# This sub function uses gdal's raster functionality to create an array
+def rasterToArray(InputRaster):
+	# Local variable 'raster' is defined as an opened input raster
+    raster = gdal.Open(InputRaster)
+	# Variable 'band' created by querying raster for its band
+    band = raster.GetRasterBand(1)
+	# Variable 'array' defined as the raster band values read as an array
+    array = band.ReadAsArray()
+	# Sub function returns array
+    return array
+
+def coordinateToPixelOffset(InputRaster,x,y):
+    raster = gdal.Open(InputRaster)
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3] 
+    pixelWidth = geotransform[1] 
+    pixelHeight = geotransform[5]
+    xOffset = int((x - originX)/pixelWidth)
+    yOffset = int((y - originY)/pixelHeight)
+    return xOffset,yOffset
+
+def createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate):   
+
+    # coordinates to array index
+    startCoordinateX = startCoordinate[0]
+    startCoordinateY = startCoordinate[1]
+    startIndexX,startIndexY = coordinateToPixelOffset(costSurfaceRaster,startCoordinateX,startCoordinateY)
+
+    stopCoordinateX = stopCoordinate[0]
+    stopCoordinateY = stopCoordinate[1]
+    stopIndexX,stopIndexY = coordinateToPixelOffset(costSurfaceRaster,stopCoordinateX,stopCoordinateY)
+
+    # create path
+    indices, weight = route_through_array(costSurfaceArray, (startIndexY,startIndexX), (stopIndexY,stopIndexX),geometric=True,fully_connected=True)
+    indices = np.array(indices).T
+    path = np.zeros_like(costSurfaceArray)
+    path[indices[0], indices[1]] = 1
+    return path
+
+def arrayToRaster(newInputRaster,InputRaster,array):
+    raster = gdal.Open(InputRaster)
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3] 
+    pixelWidth = geotransform[1] 
+    pixelHeight = geotransform[5]
+    cols = array.shape[1]
+    rows = array.shape[0]
+
+    driver = gdal.GetDriverByName('GTiff')
+    outRaster = driver.Create(newInputRaster, cols, rows, gdal.GDT_Byte)
+    outRaster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
+    outband = outRaster.GetRasterBand(1)
+    outband.WriteArray(array)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(raster.GetProjectionRef())
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache() 
+
+def main(costSurfaceRaster,outputPathfn,startCoordinate,stopCoordinate):
+
+    costSurfaceArray = rasterToArray(costSurfaceRaster) # creates array from cost surface raster
+
+    pathArray = createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate) # creates path array
+
+    arrayToRaster(outputPathfn,costSurfaceRaster,pathArray) # converts path array to raster
+
+if __name__ == "__main__":
+    costSurfaceRaster = 'C:/Users/Matthew/Downloads/ShouldWork.tif'
+    startCoordinate = (162100.17,3162874.07)
+    stopCoordinate = (245651.55,3268528.81)
+    outputRaster= 'C:/Users/Matthew/Downloads/LeastPath.tif'
+    main(costSurfaceRaster,outputPathfn,startCoordinate,stopCoordinate)
+
