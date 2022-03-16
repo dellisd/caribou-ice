@@ -101,25 +101,36 @@ def arrayToRaster(newInputRaster,InputRaster,array):
     outRaster = driver.Create(newInputRaster, cols, rows, gdal.GDT_Byte)
     # OutRaster geotransform is set using paramaters 
     outRaster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
+    # Outband is equal to the raster band of the outRaster
     outband = outRaster.GetRasterBand(1)
+    # Create an array from the outraster band
     outband.WriteArray(array)
+    # Outraster spatial reference retrieved using OSR
     outRasterSRS = osr.SpatialReference()
+    # Outraster spatial reference imported using Well-Known Text
     outRasterSRS.ImportFromWkt(raster.GetProjectionRef())
+    # Outraster projection set as the SRS gathered above
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    # Flush cache to clean up drive
     outband.FlushCache() 
-
+# Is this necessary?
 def main(costSurfaceRaster,outputPathfn,startCoordinate,stopCoordinate):
-
+    # Cost surface array gathered using raster to array function on our cost raster
     costSurfaceArray = rasterToArray(costSurfaceRaster) # creates array from cost surface raster
-
+    # Path array created using createPath
     pathArray = createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate) # creates path array
-
+    # Array to raster used on outputpath (where the output raster will go) and cost raster, path array
     arrayToRaster(outputPathfn,costSurfaceRaster,pathArray) # converts path array to raster
-
+# Main structure used to run the function (can be adjusted for project)
 if __name__ == "__main__":
+    # Cost surface raster used from local file (adjustment needed)
     costSurfaceRaster = 'C:/Users/Matthew/Downloads/ShouldWork.tif'
+    # Start coordinate (source SRS)
     startCoordinate = (162100.17,3162874.07)
+    # End coordinate (source SRS)
     stopCoordinate = (245651.55,3268528.81)
+    # Path and name for our output raster
     outputRaster= 'C:/Users/Matthew/Downloads/LeastPath.tif'
+    # Calling main (can be changed)
     main(costSurfaceRaster,outputPathfn,startCoordinate,stopCoordinate)
 
