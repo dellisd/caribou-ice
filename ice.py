@@ -1,5 +1,7 @@
 # noinspection PyUnresolvedReferences
 import patch_env
+import argparse
+import logging
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import *
 
@@ -12,7 +14,7 @@ def config_qgis():
     """
     qgs = QgsApplication([], False)
 
-    print("Initializing QGIS")
+    logging.info("Initializing QGIS")
     qgs.initQgis()
     return qgs
 
@@ -44,9 +46,9 @@ def export_map_test(title, data_path, output_path):
     """
     v_layer = QgsVectorLayer(data_path, "ROI", "ogr")
     if not v_layer.isValid():
-        print("Layer failed to load!")
+        logging.error("Layer failed to load!")
     else:
-        print("Loaded Vector Layer")
+        logging.info("Loaded Vector Layer")
         QgsProject.instance().addMapLayer(v_layer)
 
     layout = qgis_load_layout("test/test.qpt")
@@ -61,11 +63,21 @@ def export_map_test(title, data_path, output_path):
     # Export layout to PDF
     exporter = QgsLayoutExporter(layout)
     exporter.exportToPdf(output_path, QgsLayoutExporter.PdfExportSettings())
-    print(f"Exported to {output_path}")
+    logging.info(f"Exported to {output_path}")
 
 
 def main():
-    print("Hello World!")
+    parser = argparse.ArgumentParser(
+        description="Compute possible least-cost paths for caribou across a set of sea ice chart data")
+
+    parser.add_argument("roi", type=str, help="A vector shapefile containing a polygon of the region of interest")
+    parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s",
+                        handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
+
+    logging.debug("Hello World!")
 
     qgs = config_qgis()
     export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
