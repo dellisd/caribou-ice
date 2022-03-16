@@ -71,6 +71,30 @@ def main():
     export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
     qgs.exitQgis()
 
+import csv    
+def export_csv(icepath_output):
+    """ 
+    Exports ice path data to a comma-seperated values (csv) file
+    
+    author: @oliviadale
+
+    Parameters
+    ----------
+    icepath_output : attribute data from vector linestring
+
+    Returns
+    -------
+    None.
+
+    """
+    with open('output.csv', 'w', newline='') as file:
+        header = ['chart_name', 'date', 'path_viability', 'length']
+        writer = csv.writer(file)
+        for path in icepath_output:
+            writer.writerow(header)
+            writer.writerows(icepath_output)
+    print("The file has been exported")
+
 
 if __name__ == "__main__":
     main()
