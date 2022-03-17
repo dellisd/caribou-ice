@@ -47,12 +47,8 @@ def coordinateToPixelOffset(InputRaster,x,y):
     xOffset = int((x - originX)/pixelWidth)
     # The yOffset variable is an integer (int()) transformation of the (y-originY)/(pixelWidth) (gives you the raster index of your y coordinate)
     yOffset = int((y - originY)/pixelHeight)
-    # Return the x and y Offset values
-    xOffsetReal = ((x - originX)/pixelWidth)
-    yOffsetReal = ((y - originY)/pixelHeight)
-    return xOffset,yOffset,xOffsetReal,yOffsetReal
-defPixelOffsetToCoordinate(xOffsetReal, yOffsetReal):
-    InputRaster = 'C:/Users/derekellis/Downloads/Testing/ShouldWork.tif'
+    return xOffset,yOffset
+def PixelOffsetToCoordinate(InputRaster, xOffset, yOffset):
     # Declare a local raster variable by gdal reading the input raster
     raster = gdal.Open(InputRaster)
     # The geotransform variable is retrieved from the raster's information as a gdal object
@@ -65,8 +61,9 @@ defPixelOffsetToCoordinate(xOffsetReal, yOffsetReal):
     pixelWidth = geotransform[1] 
     # Pixel height is declared using 5th geotransform element
     pixelHeight = geotransform[5]
-    coordX = originX+pixelWidth*xOffsetReal
-    coordY = originY+pixelHeight*yOffsetReal
+    coordX = originX+pixelWidth*xOffset
+    coordY = originY+pixelHeight*yOffset
+    return coordX, coordY
 # This function creates the cost surface path, taking in the cost surface raster, array, and start and stop coordinates as inputs
 def createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate):   
     # X coordinate is the 0th element of startCoordinate array (x, y)
@@ -74,25 +71,31 @@ def createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate
     # Y coordinate is the 1st element of startCoordinate array (x, y)
     startCoordinateY = startCoordinate[1]
     # The raster index of your start X and start Y variable (startIndexX, startIndexY) are declared together as the returned elements from coordinateToPixelOffset function
-    startIndexX,startIndexY, startIndexXRealm startIndexYReal = coordinateToPixelOffset(costSurfaceRaster,startCoordinateX,startCoordinateY)
+    startIndexX,startIndexY= coordinateToPixelOffset(costSurfaceRaster,startCoordinateX,startCoordinateY)
     # X coordinate is the 0th element of stopCoordinate array (x, y)
     stopCoordinateX = stopCoordinate[0]
     # Y coordinate is the 1st element of stopCoordinate array (x, y)
     stopCoordinateY = stopCoordinate[1]
     # The raster index of your start X and start Y variable (stopIndexX, stopIndexY) are declared together as the returned elements from coordinateToPixelOffset function
-    stopIndexX,stopIndexY, stopIndexXReal, stopIndexYReal = coordinateToPixelOffset(costSurfaceRaster,stopCoordinateX,stopCoordinateY)
-
+    stopIndexX,stopIndexY = coordinateToPixelOffset(costSurfaceRaster,stopCoordinateX,stopCoordinateY)
     # A path is created using the route_through_array function from skimage using the cost array, start and stop indices as inputs.
     # Variables indices, and weight are declared from the returns from the route_through_array function
     indices, weight = route_through_array(costSurfaceArray, (startIndexY,startIndexX), (stopIndexY,stopIndexX),geometric=True,fully_connected=True)
     # indices variable converted to a numpy array
     indices = np.array(indices).T
+    # This section is being used for testing creation of a coordinate list to be coverted to WKT/shapefile
+    # When complete. Work in progress for now. List creation works. 
+    coordinateList = []
+    for offsets in indices:
+        xOffset = offsets[0]
+        yOffset = offsets[1] 
+        coordinateList.append(PixelOffsetToCoordinate(costSurfaceRaster, xOffset, yOffset)) 
     # Path is created as array using numpy
     path = np.zeros_like(costSurfaceArray)
     # Values along the path that are our LCP are declared as 255 values
     path[indices[0], indices[1]] = 255
     # Path array returned
-    return path
+    return path 
 # Definition of the arrayToRaster function, which intakes the new raster, the original cost raster (or any raster), and the path array
 def arrayToRaster(newInputRaster,InputRaster,array):
     # Declares the raster variable by opening in gdal
@@ -130,13 +133,13 @@ def arrayToRaster(newInputRaster,InputRaster,array):
     # Flush cache to clean up drive
     outband.FlushCache() 
 # Is this necessary?
-def main(costSurfaceRaster,outputPathfn,startCoordinate,stopCoordinate):
+def main(costSurfaceRaster,outputRaster,startCoordinate,stopCoordinate):
     # Cost surface array gathered using raster to array function on our cost raster
     costSurfaceArray = rasterToArray(costSurfaceRaster) # creates array from cost surface raster
     # Path array created using createPath
     pathArray = createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate) # creates path array
     # Array to raster used on outputpath (where the output raster will go) and cost raster, path array
-    arrayToRaster(outputPathfn,costSurfaceRaster,pathArray) # converts path array to raster
+    arrayToRaster(outputRaster,costSurfaceRaster,pathArray) # converts path array to raster
 # Main structure used to run the function (can be adjusted for project)
 if __name__ == "__main__":
     # Cost surface raster used from local file (adjustment needed)
@@ -148,5 +151,4 @@ if __name__ == "__main__":
     # Path and name for our output raster
     outputRaster= 'C:/Users/Matthew/Downloads/LeastPath.tif'
     # Calling main (can be changed)
-    main(costSurfaceRaster,outputPathfn,startCoordinate,stopCoordinate)
-
+    main(costSurfaceRaster,outputRaster,startCoordinate,stopCoordinate)
