@@ -1,9 +1,6 @@
 def main():
     print("Hello World!")
 
-    qgs = config_qgis()
-    export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
-    qgs.exitQgis()
 
     
     
