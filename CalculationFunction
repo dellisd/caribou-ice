@@ -1,127 +1,16 @@
-# noinspection PyUnresolvedReferences
-import patch_env
-import argparse
-import logging
-from qgis.PyQt.QtXml import QDomDocument
-from qgis.core import *
-
-
-def config_qgis():
-    """
-    Initialize an instance of QGIS
-
-    :return: Reference to the QGIS instance, to be closed later
-    """
-    qgs = QgsApplication([], False)
-
-    logging.info("Initializing QGIS")
-    qgs.initQgis()
-    return qgs
-
-
-def qgis_load_layout(path):
-    """
-    Loads a QgsPrintLayout from a template file.
-
-    :param path: Path to a .qpt file to load
-    :return: A QgsPrintLayout instance loaded from the file
-    """
-    document = QDomDocument()
-    with open(path) as f:
-        document.setContent(f.read())
-
-    layout = QgsPrintLayout(QgsProject.instance())
-    layout.loadFromTemplate(document, QgsReadWriteContext())
-
-    return layout
-
-
-def export_map_test(title, data_path, output_path):
-    """
-    Exports a map based on the test layout template
-
-    :param title: Title to be displayed in the exported map
-    :param data_path: Path to the data to be loaded into the map
-    :param output_path: Path to save the exported map to
-    """
-    v_layer = QgsVectorLayer(data_path, "ROI", "ogr")
-    if not v_layer.isValid():
-        logging.error("Layer failed to load!")
-    else:
-        logging.info("Loaded Vector Layer")
-        QgsProject.instance().addMapLayer(v_layer)
-
-    layout = qgis_load_layout("test/test.qpt")
-
-    # Update title and map extent
-    layout_title = layout.itemById("title")
-    layout_title.setText(title)
-
-    layout_map = layout.itemById("Map 1")
-    layout_map.setExtent(v_layer.extent())
-
-    # Export layout to PDF
-    exporter = QgsLayoutExporter(layout)
-    exporter.exportToPdf(output_path, QgsLayoutExporter.PdfExportSettings())
-    logging.info(f"Exported to {output_path}")
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Compute possible least-cost paths for caribou across a set of sea ice chart data")
-
-    parser.add_argument("roi", type=str, help="A vector shapefile containing a polygon of the region of interest")
-    parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
-    args = parser.parse_args()
-
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s",
-                        handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
-
-    logging.debug("Hello World!")
-
-    qgs = config_qgis()
-    export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
-    qgs.exitQgis()
-
-import csv    
-def export_csv(icepath_output, filename):
-    """ 
-    Exports ice path data to a comma-seperated values (csv) file
-    
-    author: @oliviadale
-
-    Parameters
-    ----------
-    icepath_output : attribute data from vector linestring
-
-    Returns
-    -------
-    None.
-
-    """
-    with open(filename, 'w') as file:
-        header = ['chart_name', 'date', 'path_viability', 'length']
-        writer = csv.writer(file)
-        writer.writerows([header] + icepath_output)
-    logger.info("The file has been exported")
-
-
-    
-    
+# -*- coding: utf-8 -*-
 """
-Function(s): Calculating Least Cost Path and returning a vector line
+Function: Calculating Least Cost Path and returning a vector line
 
 Purpose: This function will take inputs of a cost raster based on
 Canadian ice charts and  will (if possible) output a least-cost path line shapefile that can be accessed and used in 
 a QGIS map layout. 
 
-You can delete my docstring if you want Derek E!
-
 Created on Thu Mar 10 17:46:39 2022
 
 @author: Matthew
 
-"""    
+"""
 # Skimage is required to create an LCP (can be deleted once in full script?)
 from skimage.graph import route_through_array
 # Osgeo functions needed for raster functionality
@@ -194,7 +83,7 @@ def createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate
     indices, weight = route_through_array(costSurfaceArray, (startIndexY,startIndexX), (stopIndexY,stopIndexX),geometric=True,fully_connected=True)
     # indices variable converted to a numpy array
     indices = np.array(indices).T
-    # The below section is being used for testing creation of a coordinate list to be coverted to WKT/shapefile
+    # This section is being used for testing creation of a coordinate list to be coverted to WKT/shapefile
     # When complete. Work in progress for now. List creation works. 
     coordinateList = []
     for offsets in indices:
@@ -243,14 +132,23 @@ def arrayToRaster(newInputRaster,InputRaster,array):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     # Flush cache to clean up drive
     outband.FlushCache() 
-def LeastCostPathCalculation(costSurfaceRaster,outputRaster,startCoordinate,stopCoordinate):
+# Is this necessary?
+def main(costSurfaceRaster,outputRaster,startCoordinate,stopCoordinate):
     # Cost surface array gathered using raster to array function on our cost raster
     costSurfaceArray = rasterToArray(costSurfaceRaster) # creates array from cost surface raster
     # Path array created using createPath
     pathArray = createPath(costSurfaceRaster,costSurfaceArray,startCoordinate,stopCoordinate) # creates path array
     # Array to raster used on outputpath (where the output raster will go) and cost raster, path array
     arrayToRaster(outputRaster,costSurfaceRaster,pathArray) # converts path array to raster
-
- 
+# Main structure used to run the function (can be adjusted for project)
 if __name__ == "__main__":
-    main()
+    # Cost surface raster used from local file (adjustment needed)
+    costSurfaceRaster = 'C:/Users/Matthew/Downloads/ShouldWork.tif'
+    # Start coordinate (source SRS)
+    startCoordinate = (162100.17,3162874.07)
+    # End coordinate (source SRS)
+    stopCoordinate = (245651.55,3268528.81)
+    # Path and name for our output raster
+    outputRaster= 'C:/Users/Matthew/Downloads/LeastPath.tif'
+    # Calling main (can be changed)
+    main(costSurfaceRaster,outputRaster,startCoordinate,stopCoordinate)
