@@ -1,0 +1,956 @@
+<?xml version='1.0' encoding='utf-8'?>
+<metadata>
+  <idinfo>
+    <citation>
+      <citeinfo>
+        <origin>Canadian Ice Service (CIS)</origin>
+        <pubdate>20210906</pubdate>
+        <title>06092021_CEXPRWA</title>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>The SIGRID-3 vector archive format is one of the World Meteorological Organization (WMO) standards for archiving digital ice charts in the Global Digital Sea Ice Data Bank (GDSIDB). The WMO ice chart archiving formats are the Sea Ice Grid (SIGRID) format developed in 1981 and formalized in 1989 and its successor SIGRID-2. The Canadian Ice Service digital Ice Analysis charts (Regional, Daily and Image) are encoded in SIGRID-3 and have two main components: the shapefile containing the Ice Analysis ice information (ice polygons and related attributes) and the metadata describing the Ice Analysis data under the SIGRID-3 format. The Regional, Daily and Image Analyses are all available in SIGRID-3 format.
+
+The Regional Ice Analyses have been produced since 1968; they show the estimated ice conditions at publication date (which corresponds to the valid date) for various regions across Canada. They are based on an analysis and integration of all available data on ice conditions, including weather and oceanographic information, visual observations from shore, ship and aircraft, airborne radar, satellite imagery and climatological information. The Regional Ice Analyses describe areas of differing ice conditions using the WMO ice observing standards, and indicate where significant changes in the amount, stage of development and form of the predominant ice types have occurred. Originally the Regional Ice Analyses for the Northern Canadian Waters (Western Arctic, Eastern Arctic and Hudson Bay) were produced on a weekly basis during the summer season, and since 1982 on a  monthly basis for the winter season. Beginning in March 2006, for the International Polar Year, that frequency was increased to twice a month during the winter. Since the fall of 2011, the Arctic charts have been issued weekly year-round. The Regional Ice Analyses for the Southern Canadian Waters (East Coast and Great Lakes) are produced on a weekly basis during the winter season only. Regional Ice Analyses are also available in arc info coverages, data extraction grid point format, various chart formats and SIGRID-3 shapefile format.</abstract>
+      <purpose>The SIGRID-3 Regional Ice Analysis products are mainly used for climate analysis, climate change studies and as input to the Global Digital Sea Ice Data Bank (GDSIDB). They can also provide ice information to marine community to enhance the safety and the efficiency of marine operations in ice-encumbered waters.</purpose>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <sngdate>Originally the Regional Ice Analyses for the Northern Canadian Waters (Western Arctic, Eastern Arctic and Hudson Bay) were produced on a weekly basis during the summer season, and since 1982 on a  monthly basis for the winter season. Beginning in March 2006, for the International Polar Year, that frequency was increased to twice a month during the winter. Since the fall of 2011, the Arctic charts have been issued weekly year-round. The Regional Ice Analyses for the Southern Canadian Waters (East Coast and Great Lakes) are produced on a weekly basis during the winter season only.
+
+          <caldate>20210906</caldate>
+          <time>00:00:00 UTC</time>
+        </sngdate>
+      </timeinfo>
+      <current>same as Publication Date</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>No changes or additions are made to the data set after the data set is distributed. If modifications are made to the data set, a new version is released along with its metadata.</update>
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-138.02</westbc>
+        <eastbc>-164.024</eastbc>
+        <northbc>66.349</northbc>
+        <southbc>80.396</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>none at the present time</themekt>
+        <themekey>sea ice</themekey>
+        <themekey>ice type</themekey>
+        <themekey>ice age</themekey>
+        <themekey>ice concentration</themekey>
+        <themekey>form of ice</themekey>
+        <themekey>floe size</themekey>
+      </theme>
+      <place>
+        <placekt>none at the present time</placekt>
+        <placekey>Canada</placekey>
+        <placekey>West Arctic</placekey>
+      </place>
+    </keywords>
+    <accconst>none</accconst>
+    <useconst>With accreditation from Environment Canada</useconst>
+  </idinfo>
+  <dataqual>
+    <logic>The first step consists on manually creating a Regional Ice Analysis coverage and incorporating data from the various source information. Automated validity checks are performed during attribute (WMO Egg code,  in accordance with the World Meteorological Organization standards for reporting ice conditions) and line entry. A topological polygon build is done to clean the coverage, corrections are made (if required) and a chart is produced for manual quality control. Once completed the Regional Ice Analysis coverage is automatically converted to a shapefile, the metadata is generated and they are packaged as a SIGRID-3 product (.tar) for distribution.</logic>
+    <complete>The ice interpretation (boundaries, concentrations, ice types and floe sizes) of Satellite and Airborne imagery is done visually with the help of climatological data, ground truthing and meteorological data. The reliability and accuracy of the data set is directly related to the availability, resolution and the affects of atmospheric (cloud, daylight, etc.) and ground (snow, rain, sea state, etc.) conditions on the source information. The source information is incorporated in the Regional Ice Analysis if the source information publication or acquisition date is plus or minus 3 days of the Regional Ice Analysis publication date. The only exception is the Regional Ice Analysis source information where we use the previous publication date. Note that the time period information for all source information represent the time period during which it was available and may or may not have been incorporated in the Regional Ice Analysis product.</complete>
+    <lineage>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Canadian Space Agency (CSA)</origin>
+            <pubdate>various</pubdate>
+            <title>RADARSAT Imagery</title>
+          </citeinfo>
+        </srccite>
+        <typesrc>electronic (Satellite)</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>19960313</begdate>
+              <enddate>still active</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr> source information acquisition date</srccurr>
+        </srctime>
+      </srcinfo>
+      <procstep>
+        <procdesc>Since 1968, Regional Ice Analyses have been compiled from numerous data sources generally acquired plus or minus three days of its publication date. Over the years, data sources have included a wide variety of satellite imagery, aerial reconnaissance and ship borne reports. Each data source and its availability over the years is described in their respective source information. The Regional Ice Analyses are presently being generated using in house software (ISIS system: ERDAS and ARC/Info).</procdesc>
+        <procdate>Originally the Regional Ice Analyses for the Northern Canadian Waters (Western Arctic, Eastern Arctic and Hudson Bay) were produced on a weekly basis during the summer season, and since 1982 on a  monthly basis for the winter season. Beginning in March 2006, for the International Polar Year, that frequency was increased to twice a month during the winter. Since the fall of 2011, the Arctic charts have been issued weekly year-round.</procdate>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spref>
+    <horizsys>
+      <geodetic>
+        <horizdn>D_WGS_1984</horizdn>
+        <ellips>WGS_1984</ellips>
+        <semiaxis>6378137.000000</semiaxis>
+        <denflat>298.257224</denflat>
+      </geodetic>
+      <cordsysn />
+      <planar>
+        <mapproj>
+          <mapprojn>Lambert Conformal Conic</mapprojn>
+          <lambertc>
+            <stdparll>49</stdparll>
+            <stdparll>77</stdparll>
+            <longcm>-100</longcm>
+            <latprjo>40</latprjo>
+            <feast>0</feast>
+            <fnorth>0</fnorth>
+          </lambertc>
+        </mapproj>
+        <planci>
+          <coordrep>
+            <absres>0.11118</absres>
+            <ordres>0.11118</ordres>
+          </coordrep>
+          <plandu>meters</plandu>
+        </planci>
+      </planar>
+    </horizsys>
+  </spref>
+  <eainfo>
+    <detailed>
+      <enttyp>
+        <enttypl>
+CIS Regional Ice Analyses in SIGRID-3 format</enttypl>
+        <enttypd>The SIGRID-3 vector archive format is one of the World Meteorological Organization (WMO) standards for archiving digital ice charts in the Global Digital Sea Ice Data Bank (GDSIDB). The WMO ice chart archiving formats are the Sea Ice Grid (SIGRID) format developed in 1981 and formalized in 1989 and its successor SIGRID-2. A Regional Ice Analysis encoded in SIGRID-3 has two main components: the shapefile containing the Regional Ice Analysis ice information (ice polygons and related attributes) and the metadata describing the Regional Ice Analyses data under the SIGRID-3 format. A shapefile consists of three core files (but may include several optional files). Each file in the set shares the shapefile name with a different extension. The main file (*.shp) stores shape geometry and must always have an index file (*.shx). A database file (*.dbf) stores all the attributes of the shapes in the main file. SIGRID-3 uses the widely accepted, public domain eXtensible Markup Language (XML) for metadata (information on the Regional Ice Analysis and how it was generated). A file in XML stores the metadata that pertains to each Regional Ice Analysis. Metadata includes projection, location, keywords, and contact information. A file in XML can be read using a web browser, and it is easy to make it available for searches via the Internet. To archive a Regional Ice Analysis in SIGRID-3 (.tar), four files are required: three for the Regional Ice Analysis in shapefile format (.shp,.shx,.dbf) and one for the metadata (xml). The database file consists of a set of mandatory and optional fields which are described in the Entity Type Definition Source and are listed below.</enttypd>
+        <enttypds>As per SIGRID standards: undetermined or unknown applicable fields are reported as "99", empty applicable fields are reported as "-9" and empty or unknown non applicable fields are reported as null. Two new attributes (COVSHP_ , COVSHP_ID) are added to the list of SIGRID-3 attributes during the automatic conversion of the Regional Ice Analysis from coverage to shapefile. They are both sequential unique whole numbers that are automatically generated by the ESRI conversion tool (as is the FID Label). For more information, please refer to the SIGRID-3: A Vector Archive Format for Sea Ice Charts Developed by the International Ice Charting Working Groups Ad Hoc Format Team for the WMO "Global Digital Sea Ice Data Bank" project (WMO/TD-No. 1214, 2004)</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>FID</attrlabl>
+        <attrdef>Internal feature number.</attrdef>
+        <attrdefs>ESRI</attrdefs>
+        <attrdomv>
+          <udom>Sequential unique whole numbers that are automatically generated.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Shape</attrlabl>
+        <attrdef>Feature geometry.</attrdef>
+        <attrdefs>ESRI</attrdefs>
+        <attrdomv>
+          <udom>Coordinates defining the features.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>AREA</attrlabl>
+        <attrdef>Area of polygons</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>PERIMETER</attrlabl>
+        <attrdef>Perimeter of polygon</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>REGION</attrlabl>
+        <attrdef>Name of region</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+        </attr>
+      <attr>
+        <attrlabl>EGG_ID</attrlabl>
+        <attrdef>Internal egg id</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>PNT_TYPE</attrlabl>
+        <attrdef>Unique label id for polygon features</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>EGG_ATTR</attrlabl>
+        <attrdef>String value for egg</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>EGG_NAME</attrlabl>
+        <attrdef>Name of egg</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CT</attrlabl>
+        <attrdef>Total concentration of all ice in the area</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CA</attrlabl>
+        <attrdef>Partial concentration of thickest ice</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>SA</attrlabl>
+        <attrdef>Stage of development of thickest ice</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>FA</attrlabl>
+        <attrdef>Form of ice corresponding to SA</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CB</attrlabl>
+        <attrdef>Partial concentration of second thickest ice</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>SB</attrlabl>
+        <attrdef>Stage of development of second thickest ice</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>FB</attrlabl>
+        <attrdef>Form of ice corresponding to SB</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CC</attrlabl>
+        <attrdef>Partial concentration of third thickest ice</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>SC</attrlabl>
+        <attrdef>Stage of development of third thickest ice</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>FC</attrlabl>
+        <attrdef>Form of ice corresponding to SC</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CN</attrlabl>
+        <attrdef>Stage of development of ice thicker than SA but with concentration less than 1/10</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>CD</attrlabl>
+        <attrdef>Stage of development of any remaining ice class of ice not reported by SA, SB, SC or CN</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>POLY_TYPE</attrlabl>
+        <attrdef>Surface Type</attrdef>
+        <attrdefs>WMO JCOMM ETSI</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>SIGRID-3</codesetn>
+            <codesets>WMO JCOMM ETSI</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_CT</attrlabl>
+        <attrdef>Total concentration</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_CA</attrlabl>
+        <attrdef>	Partial concentration of column a</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_CB</attrlabl>
+        <attrdef>Partial concentration of column b</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_CC</attrlabl>
+        <attrdef>Partial concentration of column c</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_CD</attrlabl>
+        <attrdef>Partial concentration of column d</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_SO</attrlabl>
+        <attrdef>Stage of development of ice found in traces</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_SA</attrlabl>
+        <attrdef>Stage of development of column a</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_SB</attrlabl>
+        <attrdef>Stage of development of column b</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_SC</attrlabl>
+        <attrdef>Stage of development of column c</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_SD</attrlabl>
+        <attrdef>Stage of development of column d</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_SE</attrlabl>
+        <attrdef>Stage of development of column e</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_FA</attrlabl>
+        <attrdef>Floe size of column a</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_FB</attrlabl>
+        <attrdef>Floe size of column b</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_FC</attrlabl>
+        <attrdef>Floe size of column c</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_FD</attrlabl>
+        <attrdef>Floe size of column d</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_FE</attrlabl>
+        <attrdef>Floe size of column e</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>E_CS</attrlabl>
+        <attrdef>Concentration of ice in strips and patches</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>MANICE</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CT</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CMY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CSY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CFY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CGW</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CG</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CN</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_PMY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_PSY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CT</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_PFY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_PGW</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_PG</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_PN</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_CS</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_SMY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_SSY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_SFY</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_SGW</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_SG</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>R_SN</attrlabl>
+        <attrdef>Ratio code (prior to 1983)</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CT</attrlabl>
+        <attrdef>Numeric value for total concentration</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_COI</attrlabl>
+        <attrdef>Numeric value for concentration of old ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CMY</attrlabl>
+        <attrdef>Numeric value for concentration of multi year ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CSY</attrlabl>
+        <attrdef>umeric value for concentration of second year ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CFY</attrlabl>
+        <attrdef>Numeric value for concentration of first year ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CFY_TK</attrlabl>
+        <attrdef>Numeric value for concentration of first year thick ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CFY_M</attrlabl>
+        <attrdef>Numeric value for concentration of first year medium ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CFY_TN</attrlabl>
+        <attrdef>Numeric value for concentration of first year thin ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CYI</attrlabl>
+        <attrdef>Numeric value for concentration of young ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CGW</attrlabl>
+        <attrdef>Numeric value for concentration of grey white ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CG</attrlabl>
+        <attrdef>Numeric value for concentration of grey ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CN</attrlabl>
+        <attrdef>Numeric value for concentration of new ice</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>N_CB</attrlabl>
+        <attrdef>Numeric value for concentration of icebergs</attrdef>
+        <attrdefs>Regional Ice Charts</attrdefs>
+        <attrdomv>
+          <codesetd>
+            <codesetn>Regional Ice Charts</codesetn>
+            <codesets>Canadian Ice Service (CIS)</codesets>
+          </codesetd>
+        </attrdomv>
+      </attr>
+    </detailed>
+  </eainfo>
+  <distinfo>
+  <forname>SIGRID-3</forname>
+  <formvern>3</formvern>
+  <formverd>20140503</formverd>
+</distinfo>
+  <metainfo>
+    <metd>20210211</metd>
+    <metc>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>Canadian Ice Service (CIS)</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical address</addrtype>
+          <address>719 Heron Rd. Tilley Building, Annex E</address>
+          <city>Ottawa</city>
+          <state>Ontario</state>
+          <postal>K1A 0H3</postal>
+          <country>Canada</country>
+        </cntaddr>
+        <cntemail>ec.cisclients-scgclients.ec@canada.ca</cntemail>
+      </cntinfo>
+    </metc>
+    <metstdn>FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+  </metainfo>
+  <Esri>
+    <ModDate>20210211</ModDate>
+    <ModTime>12000000</ModTime>
+  </Esri>
+  <mdDateSt Sync="TRUE">20210211</mdDateSt>
+</metadata>

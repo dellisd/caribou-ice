@@ -1,4 +1,7 @@
 .idea/
 
 test/output.pdf
+test/LeastPath.tif
+test/output.csv
+test/clipped2/
 run.log
