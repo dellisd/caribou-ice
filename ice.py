@@ -275,20 +275,35 @@ def lcp(surface_raster: str,
     array_to_raster(output_raster, surface_raster, path_array)
 
 
-def clip(area_file, icechart_file, out_file):
+def clip(area_file, icechart_file):
     """
     Clips an ice chart shapefile given a shapefile for the region of interest
 
     :param area_file: Shapefile of the region of interest
     :param icechart_file: Shapefile of the ice chart data
-    :param out_file: Path to write the clipped file to
-    :return: TODO: ???
+    :return: The clipped geometry
     :author: Sadaf
     """
     region = gpd.read_file(area_file)
     icechart_gdf = gpd.read_file(icechart_file)
     clipped = gpd.clip(icechart_gdf, region)
-    return clipped.to_file(out_file)
+    return clipped
+
+
+def parse_arg_coord(arg: str) -> (float, float):
+    """
+    Parsers a coordinate given in the program arguments and returns them as a tuple of floats
+    e.g. "-75.2,123", or "-54, 234". Spaces are stripped out.
+
+    :param arg: The argument in the coordinate format
+    :return: The coordinate as a float tuple.
+    :author: Derek Ellis
+    """
+    parts = arg.split(",")
+    if len(parts) != 2:
+        raise SyntaxError(f"Two coordinate values expected, {len(parts)} were provided.")
+
+    return float(parts[0].strip()), float(parts[1].strip())
 
 
 def main():
@@ -300,13 +315,40 @@ def main():
 
     parser.add_argument("roi", type=str, help="A vector shapefile containing a polygon of the region of interest")
     parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
+    parser.add_argument("--start", type=str, help="Coordinate to start the path at, as an \"X,Y\" string")
+    parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string")
     args = parser.parse_args()
+
+    if args.start is not None:
+        try:
+            start = parse_arg_coord(args.start)
+        except ValueError:
+            logging.error("Invalid start coordinate value provided")
+            exit(-1)
+        except SyntaxError:
+            logging.error("Invalid start coordinate string provided")
+
+    if args.end is not None:
+        try:
+            end = parse_arg_coord(args.start)
+        except ValueError:
+            logging.error("Invalid start coordinate value provided")
+            exit(-1)
+        except SyntaxError:
+            logging.error("Invalid start coordinate string provided")
 
     # Check that all files exist before proceeding
     for chart in [args.roi] + args.charts:
         if not os.path.isfile(chart):
             logging.error(f"Shapefile \"{chart}\" does not exist, exiting.")
             exit(-1)
+
+    for chart in args.chart:
+        clipped = clip(args.roi, chart)
+        # 2. Rasterize clipped
+        # 3. Compute LCP, using clipped
+        # 4. Generate map
+        pass
 
     logging.debug("Hello World!")
 
@@ -322,7 +364,8 @@ def main():
 
     # Test clipping
     logging.info("Testing ROI clipping")
-    output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp", "test/clipped2")
+    output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp")
+    output.to_file("test/clipped2")
     print(output)
 
     # Test LCP computation
