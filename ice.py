@@ -56,13 +56,16 @@ def export_map_test(title, data_path, output_path):
     :param output_path: Path to save the exported map to
     :author: Derek Ellis
     """
+    # noinspection PyArgumentList
+    project = QgsProject.instance()
+    project.clear()
     v_layer = QgsVectorLayer(data_path, "ROI", "ogr")
     if not v_layer.isValid():
         logging.error("Layer failed to load!")
     else:
         logging.info("Loaded Vector Layer")
-        # noinspection PyArgumentList
-        QgsProject.instance().addMapLayer(v_layer)
+        project.addMapLayer(v_layer)
+    v_layer.loadNamedStyle("test/style.qml")
 
     layout = qgis_load_layout("test/test.qpt")
 
@@ -71,7 +74,11 @@ def export_map_test(title, data_path, output_path):
     layout_title.setText(title)
 
     layout_map = layout.itemById("Map 1")
-    layout_map.setExtent(v_layer.extent())
+    layout_map.zoomToExtent(v_layer.extent())
+
+    # Set the layout picture path because it somehow loses it
+    north_arrow = layout.itemById("North Arrow")
+    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_02.svg")
 
     # Export layout to PDF
     exporter = QgsLayoutExporter(layout)
