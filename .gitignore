@@ -1,6 +1,6 @@
 .idea/
 
-test/output.pdf
+test/*.pdf
 test/LeastPath.tif
 test/output.csv
 test/clipped2/

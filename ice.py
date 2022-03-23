@@ -11,6 +11,7 @@ from osgeo import gdal
 from osgeo import osr
 import numpy as np
 import geopandas as gpd
+from glob import glob
 
 
 def config_qgis():
@@ -337,47 +338,60 @@ def main():
         except SyntaxError:
             logging.error("Invalid start coordinate string provided")
 
+    charts = args.charts
+    # Handle globbing in case the user's shell doesn't do this for them
+    if len(charts) == 1 and "*" in charts[0]:
+        charts = glob(charts[0])
+
     # Check that all files exist before proceeding
-    for chart in [args.roi] + args.charts:
+    for chart in [args.roi] + charts:
         if not os.path.isfile(chart):
             logging.error(f"Shapefile \"{chart}\" does not exist, exiting.")
             exit(-1)
 
-    for chart in args.chart:
+    # Load QGIS
+    qgs = config_qgis()
+    logging.debug("QGIS started successfully")
+
+    for chart in charts:
+        # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
         # 2. Rasterize clipped
         # 3. Compute LCP, using clipped
         # 4. Generate map
+        export_map_test(chart, chart, f"{chart}.pdf")
         pass
 
     logging.debug("Hello World!")
-
-    # Test QGIS PDF export
-    logging.info("Testing QGIS PDF export")
-    qgs = config_qgis()
-    export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
+    logging.debug("Killing QGIS")
     qgs.exitQgis()
 
-    # Test CSV export
-    logging.info("Testing CSV export")
-    export_csv([["06092021_CEXPRWA.shp", False], ["06122021_CEXPRWA.shp", True]], "test/output.csv")
-
-    # Test clipping
-    logging.info("Testing ROI clipping")
-    output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp")
-    output.to_file("test/clipped2")
-    print(output)
-
-    # Test LCP computation
-    gdal.GetDriverByName("GTiff")
-    logging.info("Testing LCP computation")
-    start_coordinate = (162100.17, 3162874.07)
-    stop_coordinate = (245651.55, 3268528.81)
-    cost_raster = os.path.abspath("test/ShouldWork.tif")
-    output_raster = "test/LeastPath.tif"
-
-    path_array = create_path(cost_raster, start_coordinate, stop_coordinate)
-    array_to_raster(output_raster, cost_raster, path_array)
+    # # Test QGIS PDF export
+    # logging.info("Testing QGIS PDF export")
+    # qgs = config_qgis()
+    # export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
+    # qgs.exitQgis()
+    #
+    # # Test CSV export
+    # logging.info("Testing CSV export")
+    # export_csv([["06092021_CEXPRWA.shp", False], ["06122021_CEXPRWA.shp", True]], "test/output.csv")
+    #
+    # # Test clipping
+    # logging.info("Testing ROI clipping")
+    # output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp")
+    # output.to_file("test/clipped2")
+    # print(output)
+    #
+    # # Test LCP computation
+    # gdal.GetDriverByName("GTiff")
+    # logging.info("Testing LCP computation")
+    # start_coordinate = (162100.17, 3162874.07)
+    # stop_coordinate = (245651.55, 3268528.81)
+    # cost_raster = os.path.abspath("test/ShouldWork.tif")
+    # output_raster = "test/LeastPath.tif"
+    #
+    # path_array = create_path(cost_raster, start_coordinate, stop_coordinate)
+    # array_to_raster(output_raster, cost_raster, path_array)
 
 
 if __name__ == "__main__":

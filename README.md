@@ -18,6 +18,15 @@ Once in the conda environment, the script can be run using the following command
 python ice.py [roi] [charts...]
 ```
 
+### Examples
+```shell
+python ice.py test/GH_CIS.shp test/*_CEXPRWA.shp
+
+# Will output the following files:
+#   test/06092021_CEXPRWA.shp.pdf
+#   test/12092021_CEXPRWA.shp.pdf
+```
+
 ## Contact
 * Derek Ellis (derekellis@cmail.carleton.ca)
 * Olivia Dale (oliviadale@cmail.carleton.ca)
