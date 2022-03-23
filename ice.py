@@ -39,6 +39,7 @@ def qgis_load_layout(path):
     with open(path) as f:
         document.setContent(f.read())
 
+    # noinspection PyArgumentList
     layout = QgsPrintLayout(QgsProject.instance())
     layout.loadFromTemplate(document, QgsReadWriteContext())
 
@@ -59,6 +60,7 @@ def export_map_test(title, data_path, output_path):
         logging.error("Layer failed to load!")
     else:
         logging.info("Loaded Vector Layer")
+        # noinspection PyArgumentList
         QgsProject.instance().addMapLayer(v_layer)
 
     layout = qgis_load_layout("test/test.qpt")
@@ -77,19 +79,13 @@ def export_map_test(title, data_path, output_path):
 
 
 def export_csv(icepath_output, filename):
-    """ 
-    Exports ice path data to a comma-seperated values (csv) file
-    
-    author: @oliviadale
+    """
+    Exports ice path data to a CSV file
 
-    Parameters
-    ----------
-    icepath_output : attribute data from vector linestring
-
-    Returns
-    -------
-    None.
-
+    :param icepath_output: Data to write to the CSV file
+    :param filename: The file to write the CSV data to
+    :return: None
+    :author: Olivia Dale
     """
     with open(filename, 'w') as file:
         header = ['chart_name', 'date', 'path_viability', 'length']
@@ -114,144 +110,180 @@ Created on Thu Mar 10 17:46:39 2022
 """
 
 
-# This sub function uses gdal's raster functionality to create an array, taking in an InputRaster as a parameter
-def rasterToArray(InputRaster):
-    # Local variable 'raster' is defined as an opened input raster
-    raster = gdal.Open(InputRaster)
-    # Variable 'band' created by querying raster for its band
+def raster_to_array(input_raster):
+    """
+    Opens the given raster file using GDAL and converts it to an array.
+
+    :param input_raster: Path to the raster file
+    :return: The raster as an array
+    :author: Matthew
+    """
+    raster = gdal.Open(input_raster)
     band = raster.GetRasterBand(1)
-    # Variable 'array' defined as the raster band values read as an array
+
     array = band.ReadAsArray()
-    # Sub function returns array
     return array
 
 
-# This subfunction will convert an x/y coordinate using geotransforms to a raster X/Y offset for use in creating least-cost paths
-def coordinateToPixelOffset(InputRaster, x, y):
-    raster = gdal.Open(InputRaster)
+def coordinate_to_pixel_offset(input_raster: str, x: float, y: float) -> (int, int):
+    """
+    Takes a coordinate and transforms it to a pixel offset within the given input raster.
+
+    :param input_raster: The path to the raster
+    :param x: The x coordinate, in the raster's CRS
+    :param y: The y coordinate, in the raster's CRS
+    :return: The pixel offset, as a tuple (x, y)
+    :author: Matthew
+    """
+    raster = gdal.Open(input_raster)
     geotransform = raster.GetGeoTransform()
 
-    originX = geotransform[0]
-    originY = geotransform[3]
+    origin_x = geotransform[0]
+    origin_y = geotransform[3]
 
-    pixelWidth = geotransform[1]
-    pixelHeight = geotransform[5]
+    pixel_width = geotransform[1]
+    pixel_height = geotransform[5]
 
-    # The xOffset variable is an integer (int()) transformation of the (x-originX)/(pixelWidth) (gives you the raster index of your x coordinate)
-    xOffset = int((x - originX) / pixelWidth)
-    # The yOffset variable is an integer (int()) transformation of the (y-originY)/(pixelWidth) (gives you the raster index of your y coordinate)
-    yOffset = int((y - originY) / pixelHeight)
-    return xOffset, yOffset
+    # The xOffset variable is an integer (int()) transformation of the (x-originX)/(pixelWidth) (gives you the raster
+    # index of your x coordinate)
+    x_offset = int((x - origin_x) / pixel_width)
+    # The yOffset variable is an integer (int()) transformation of the (y-originY)/(pixelWidth) (gives you the raster
+    # index of your y coordinate)
+    y_offset = int((y - origin_y) / pixel_height)
+    return x_offset, y_offset
 
 
-def pixelOffsetToCoordinate(InputRaster, xOffset, yOffset):
-    # Declare a local raster variable by gdal reading the input raster
-    raster = gdal.Open(InputRaster)
-    # The geotransform variable is retrieved from the raster's information as a gdal object
+def pixel_offset_to_coordinate(input_raster: str, x_offset: int, y_offset: int) -> (float, float):
+    """
+    Convert a raster pixel location to a geotransformed coordinate
+
+    :param input_raster: Path to the input raster
+    :param x_offset: x pixel offset
+    :param y_offset: y pixel offset
+    :return: The transformed coordinate in the raster's CRS as a tuple (x, y)
+    :author: Matthew
+    """
+    raster = gdal.Open(input_raster)
     geotransform = raster.GetGeoTransform()
-    # originX variable declared from 0th element on geotransform 
-    originX = geotransform[0]
-    # originY variable declared from the 3rd element from the geotransform 
-    originY = geotransform[3]
-    # The pixel width is declared using 1st geotransform element
-    pixelWidth = geotransform[1]
-    # Pixel height is declared using 5th geotransform element
-    pixelHeight = geotransform[5]
-    coordX = originX + pixelWidth * xOffset
-    coordY = originY + pixelHeight * yOffset
-    return coordX, coordY
+
+    # Get the raster's origin from the geotransform elements
+    origin_x = geotransform[0]
+    origin_y = geotransform[3]
+
+    # Get pixel size from the raster's geotransform
+    pixel_width = geotransform[1]
+    pixel_height = geotransform[5]
+
+    coord_x = origin_x + pixel_width * x_offset
+    coord_y = origin_y + pixel_height * y_offset
+    return coord_x, coord_y
 
 
-# This function creates the cost surface path, taking in the cost surface raster, array, and start and stop coordinates as inputs
-def createPath(costSurfaceRaster, costSurfaceArray, startCoordinate, stopCoordinate):
-    # X coordinate is the 0th element of startCoordinate array (x, y)
-    startCoordinateX = startCoordinate[0]
-    # Y coordinate is the 1st element of startCoordinate array (x, y)
-    startCoordinateY = startCoordinate[1]
-    # The raster index of your start X and start Y variable (startIndexX, startIndexY) are declared together as the returned elements from coordinateToPixelOffset function
-    startIndexX, startIndexY = coordinateToPixelOffset(costSurfaceRaster, startCoordinateX, startCoordinateY)
-    # X coordinate is the 0th element of stopCoordinate array (x, y)
-    stopCoordinateX = stopCoordinate[0]
-    # Y coordinate is the 1st element of stopCoordinate array (x, y)
-    stopCoordinateY = stopCoordinate[1]
-    # The raster index of your start X and start Y variable (stopIndexX, stopIndexY) are declared together as the returned elements from coordinateToPixelOffset function
-    stopIndexX, stopIndexY = coordinateToPixelOffset(costSurfaceRaster, stopCoordinateX, stopCoordinateY)
-    # A path is created using the route_through_array function from skimage using the cost array, start and stop indices as inputs.
-    # Variables indices, and weight are declared from the returns from the route_through_array function
-    indices, weight = route_through_array(costSurfaceArray, (startIndexY, startIndexX), (stopIndexY, stopIndexX),
-                                          geometric=True, fully_connected=True)
-    # indices variable converted to a numpy array
+def create_path(cost_surface_raster: str, start_coord: (float, float), stop_coord: (float, float)):
+    """
+    Computes the least cost path over the given raster surface from a given start to stop coordinate
+
+    :param cost_surface_raster: Path to the raster
+    :param start_coord: The start coordinate in the raster's CRS
+    :param stop_coord: The stop coordinate in the raster's CRS
+    :return: A raster array showing the path
+    :author: Matthew
+    """
+    # Load raster as an array
+    cost_surface_array = raster_to_array(cost_surface_raster)
+
+    start_x, start_y = start_coord
+    start_index_x, start_index_y = coordinate_to_pixel_offset(cost_surface_raster, start_x, start_y)
+
+    stop_x, stop_y = stop_coord
+    stop_index_x, stop_index_y = coordinate_to_pixel_offset(cost_surface_raster, stop_x, stop_y)
+
+    # A path is created using the route_through_array function from skimage using the cost array, start and stop
+    # indices as inputs. Variables indices, and weight are declared from the returns from the route_through_array
+    # function
+    indices, weight = route_through_array(cost_surface_array, (start_index_y, start_index_x),
+                                          (stop_index_y, stop_index_x), geometric=True, fully_connected=True)
     indices = np.array(indices).T
-    # The below section is being used for testing creation of a coordinate list to be coverted to WKT/shapefile
+
+    # The below section is being used for testing creation of a coordinate list to be converted to WKT/shapefile
     # When complete. Work in progress for now. List creation works. 
-    coordinateList = []
+    coordinate_list = []
     for offsets in indices:
-        xOffset = offsets[0]
-        yOffset = offsets[1]
-        coordinateList.append(pixelOffsetToCoordinate(costSurfaceRaster, xOffset, yOffset))
-        # Path is created as array using numpy
-    path = np.zeros_like(costSurfaceArray)
+        x_offset = offsets[0]
+        y_offset = offsets[1]
+        coordinate_list.append(pixel_offset_to_coordinate(cost_surface_raster, x_offset, y_offset))
+
+    path = np.zeros_like(cost_surface_array)
     # Values along the path that are our LCP are declared as 255 values
     path[indices[0], indices[1]] = 255
-    # Path array returned
     return path
 
 
-# Definition of the arrayToRaster function, which intakes the new raster, the original cost raster (or any raster), and the path array
-def arrayToRaster(newInputRaster, InputRaster, array):
-    # Declares the raster variable by opening in gdal
-    raster = gdal.Open(InputRaster)
-    # Geotransform variable gathered again
+def array_to_raster(output_path: str, original_raster: str, array) -> None:
+    """
+    Writes an array to the output path as a raster, using the same geo transform as the original raster
+
+    :param output_path: Path to write the output raster
+    :param original_raster: Path to the original raster
+    :param array: Array to write to the output, as a raster
+    :return: None
+    :author: Matthew
+    """
+    raster = gdal.Open(original_raster)
     geotransform = raster.GetGeoTransform()
-    # OriginX gathered from 0th element of geotransform again
-    originX = geotransform[0]
-    # OriginY gathered from 3rd element again
-    originY = geotransform[3]
-    # pixelWidth gathered from 1st element again
-    pixelWidth = geotransform[1]
-    # pixelHeght gathered from 5th element again
-    pixelHeight = geotransform[5]
-    # Columns declared as first element of array
+
+    # Get the raster's origin from the geotransform elements
+    origin_x = geotransform[0]
+    origin_y = geotransform[3]
+
+    # Get pixel size from the raster's geotransform
+    pixel_width = geotransform[1]
+    pixel_height = geotransform[5]
+
     cols = array.shape[1]
-    # Rows declared as 0th element of array
     rows = array.shape[0]
-    # Driver variable declared as gdal's GTiff driver
+
     driver = gdal.GetDriverByName('GTiff')
-    # Outraster variable is created from driver.Create, using new raster, columns, rows, from GDAL
-    outRaster = driver.Create(newInputRaster, cols, rows, gdal.GDT_Byte)
-    # OutRaster geotransform is set using paramaters 
-    outRaster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
-    # Outband is equal to the raster band of the outRaster
-    outband = outRaster.GetRasterBand(1)
-    # Create an array from the outraster band
+    # Out raster created from GTiff driver, using new raster's columns, rows
+    out_raster = driver.Create(output_path, cols, rows, gdal.GDT_Byte)
+
+    out_raster.SetGeoTransform((origin_x, pixel_width, 0, origin_y, 0, pixel_height))
+    outband = out_raster.GetRasterBand(1)
     outband.WriteArray(array)
-    # Outraster spatial reference retrieved using OSR
-    outRasterSRS = osr.SpatialReference()
-    # Outraster spatial reference imported using Well-Known Text
-    outRasterSRS.ImportFromWkt(raster.GetProjectionRef())
-    # Outraster projection set as the SRS gathered above
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    # Flush cache to clean up drive
+
+    # Set the out raster's srs to be the same as the original raster's srs
+    out_raster_srs = osr.SpatialReference()
+    out_raster_srs.ImportFromWkt(raster.GetProjectionRef())
+    out_raster.SetProjection(out_raster_srs.ExportToWkt())
     outband.FlushCache()
 
 
-def leastCostPathCalculation(costSurfaceRaster, outputRaster, startCoordinate, stopCoordinate):
-    # Cost surface array gathered using raster to array function on our cost raster
-    costSurfaceArray = rasterToArray(costSurfaceRaster)  # creates array from cost surface raster
-    # Path array created using createPath
-    pathArray = createPath(costSurfaceRaster, costSurfaceArray, startCoordinate, stopCoordinate)  # creates path array
-    # Array to raster used on outputpath (where the output raster will go) and cost raster, path array
-    arrayToRaster(outputRaster, costSurfaceRaster, pathArray)  # converts path array to raster
+def lcp(surface_raster: str,
+        output_raster: str, start_coordinate: (float, float), stop_coordinate: (float, float)) -> None:
+    """
+    Helper function to run the LCP computation
+
+    :param surface_raster: Path to the surface cost raster
+    :param output_raster:  Path to write the output path raster
+    :param start_coordinate: Start coordinate in the cost raster's CRS
+    :param stop_coordinate:  Stop coordinate in the cost raster's CRS
+    :return: None
+    :author: Matthew
+    """
+    cost_surface_array = raster_to_array(surface_raster)
+    path_array = create_path(cost_surface_array, start_coordinate, stop_coordinate)
+    array_to_raster(output_raster, surface_raster, path_array)
 
 
 def clip(area_file, icechart_file, out_file):
     """
-    Clipds an ice chart shapefile given a shapefile for the region of interest
-    :author: Sadaf
+    Clips an ice chart shapefile given a shapefile for the region of interest
 
     :param area_file: Shapefile of the region of interest
     :param icechart_file: Shapefile of the ice chart data
-    :return:
+    :param out_file: Path to write the clipped file to
+    :return: TODO: ???
+    :author: Sadaf
     """
     region = gpd.read_file(area_file)
     icechart_gdf = gpd.read_file(icechart_file)
@@ -260,6 +292,9 @@ def clip(area_file, icechart_file, out_file):
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s",
+                        handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
+
     parser = argparse.ArgumentParser(
         description="Compute possible least-cost paths for caribou across a set of sea ice chart data")
 
@@ -267,8 +302,11 @@ def main():
     parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s",
-                        handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
+    # Check that all files exist before proceeding
+    for chart in [args.roi] + args.charts:
+        if not os.path.isfile(chart):
+            logging.error(f"Shapefile \"{chart}\" does not exist, exiting.")
+            exit(-1)
 
     logging.debug("Hello World!")
 
@@ -295,9 +333,8 @@ def main():
     cost_raster = os.path.abspath("test/ShouldWork.tif")
     output_raster = "test/LeastPath.tif"
 
-    cost_surface_array = rasterToArray(cost_raster)
-    path_array = createPath(cost_raster, cost_surface_array, start_coordinate, stop_coordinate)
-    arrayToRaster(output_raster, cost_raster, path_array)
+    path_array = create_path(cost_raster, start_coordinate, stop_coordinate)
+    array_to_raster(output_raster, cost_raster, path_array)
 
 
 if __name__ == "__main__":
