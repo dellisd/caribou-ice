@@ -47,36 +47,65 @@ def qgis_load_layout(path):
     return layout
 
 
-def export_map_test(title, data_path, output_path):
-    """
-    Exports a map based on the test layout template
-
-    :param title: Title to be displayed in the exported map
-    :param data_path: Path to the data to be loaded into the map
-    :param output_path: Path to save the exported map to
-    :author: Derek Ellis
-    """
-    v_layer = QgsVectorLayer(data_path, "ROI", "ogr")
+def load_vector_layer(path: str) -> QgsVectorLayer:
+    v_layer = QgsVectorLayer(path, "ROI", "ogr")
     if not v_layer.isValid():
         logging.error("Layer failed to load!")
     else:
         logging.info("Loaded Vector Layer")
         # noinspection PyArgumentList
-        QgsProject.instance().addMapLayer(v_layer)
+    # v_layer.loadNamedStyle("test/style.qml")
+    return v_layer
 
+
+def export_map_test(title: str, layers: [QgsVectorLayer], output_path: str):
+    """
+    Exports a map based on the test layout template
+
+    :param title: Title to be displayed in the exported map
+    :param layers: A list of vector layers to be loaded into the map
+    :param output_path: Path to save the exported map to
+    :author: Derek Ellis
+    """
+    # noinspection PyArgumentList
+    project = QgsProject.instance()
+    project.clear()
     layout = qgis_load_layout("test/test.qpt")
+
+    extent = None
+    for layer in layers:
+        if extent is None:
+            extent = layer.extent()
+        else:
+            extent.combineExtentWith(layer.extent())
+        project.addMapLayer(layer)
 
     # Update title and map extent
     layout_title = layout.itemById("title")
     layout_title.setText(title)
 
     layout_map = layout.itemById("Map 1")
-    layout_map.setExtent(v_layer.extent())
+    layout_map.zoomToExtent(extent)
+
+    # Set the layout picture path because it somehow loses it
+    north_arrow = layout.itemById("North Arrow")
+    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_02.svg")
 
     # Export layout to PDF
     exporter = QgsLayoutExporter(layout)
     exporter.exportToPdf(output_path, QgsLayoutExporter.PdfExportSettings())
     logging.info(f"Exported to {output_path}")
+
+
+def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
+    layer = QgsVectorLayer(f"linestring?crs={crs}", "Path", "memory")
+    geometry = QgsGeometry.fromPolyline(map(lambda p: QgsPoint(p[0], p[1]), line))
+
+    feature = QgsFeature()
+    feature.setGeometry(geometry)
+    layer.dataProvider().addFeatures([feature])
+
+    return layer
 
 
 def export_csv(icepath_output, filename):
@@ -180,14 +209,14 @@ def pixel_offset_to_coordinate(input_raster: str, x_offset: int, y_offset: int) 
     return coord_x, coord_y
 
 
-def create_path(cost_surface_raster: str, start_coord: (float, float), stop_coord: (float, float)):
+def create_path(cost_surface_raster: str, start_coord: (float, float), stop_coord: (float, float)) -> [(float, float)]:
     """
     Computes the least cost path over the given raster surface from a given start to stop coordinate
 
     :param cost_surface_raster: Path to the raster
     :param start_coord: The start coordinate in the raster's CRS
     :param stop_coord: The stop coordinate in the raster's CRS
-    :return: A raster array showing the path
+    :return: A list of X,Y tuples for the computed path, in the raster's original CRS
     :author: Matthew
     """
     # Load raster as an array
@@ -217,7 +246,7 @@ def create_path(cost_surface_raster: str, start_coord: (float, float), stop_coor
     path = np.zeros_like(cost_surface_array)
     # Values along the path that are our LCP are declared as 255 values
     path[indices[0], indices[1]] = 255
-    return path
+    return coordinate_list
 
 
 def array_to_raster(output_path: str, original_raster: str, array) -> None:
@@ -260,7 +289,7 @@ def array_to_raster(output_path: str, original_raster: str, array) -> None:
 
 
 def lcp(surface_raster: str,
-        output_raster: str, start_coordinate: (float, float), stop_coordinate: (float, float)) -> None:
+        output_raster: str, start_coordinate: (float, float), stop_coordinate: (float, float)) -> QgsVectorLayer:
     """
     Helper function to run the LCP computation
 
@@ -271,9 +300,12 @@ def lcp(surface_raster: str,
     :return: None
     :author: Matthew
     """
-    cost_surface_array = raster_to_array(surface_raster)
-    path_array = create_path(cost_surface_array, start_coordinate, stop_coordinate)
-    array_to_raster(output_raster, surface_raster, path_array)
+    path_array = create_path(surface_raster, start_coordinate, stop_coordinate)
+
+    # TODO: Clean this up
+    raster = gdal.Open(surface_raster)
+    return build_vector_line_layer(path_array, raster.GetProjectionRef())
+    # array_to_raster(output_raster, surface_raster, path_array)
 
 
 def clip(area_file, icechart_file):
@@ -359,12 +391,10 @@ def main():
         # 2. Rasterize clipped
         # 3. Compute LCP, using clipped
         # 4. Generate map
-        export_map_test(chart, chart, f"{chart}.pdf")
+        export_map_test(chart, [load_vector_layer(chart)], f"{chart}.pdf")
         pass
 
     logging.debug("Hello World!")
-    logging.debug("Killing QGIS")
-    qgs.exitQgis()
 
     # # Test QGIS PDF export
     # logging.info("Testing QGIS PDF export")
@@ -377,21 +407,26 @@ def main():
     # export_csv([["06092021_CEXPRWA.shp", False], ["06122021_CEXPRWA.shp", True]], "test/output.csv")
     #
     # # Test clipping
-    # logging.info("Testing ROI clipping")
-    # output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp")
-    # output.to_file("test/clipped2")
-    # print(output)
+    logging.info("Testing ROI clipping")
+    output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp")
+    output.to_file("test/clipped2")
+    print(output)
     #
     # # Test LCP computation
-    # gdal.GetDriverByName("GTiff")
-    # logging.info("Testing LCP computation")
-    # start_coordinate = (162100.17, 3162874.07)
-    # stop_coordinate = (245651.55, 3268528.81)
-    # cost_raster = os.path.abspath("test/ShouldWork.tif")
-    # output_raster = "test/LeastPath.tif"
+    gdal.GetDriverByName("GTiff")
+    logging.info("Testing LCP computation")
+    start_coordinate = (162100.17, 3162874.07)
+    stop_coordinate = (245651.55, 3268528.81)
+    cost_raster = os.path.abspath("test/ShouldWork.tif")
+    output_raster = "test/LeastPath.tif"
     #
     # path_array = create_path(cost_raster, start_coordinate, stop_coordinate)
+    layer = lcp(cost_raster, output_raster, start_coordinate, stop_coordinate)
+    export_map_test("Path!", [load_vector_layer("test/GH_CIS.shp"), layer], "test/path.pdf")
     # array_to_raster(output_raster, cost_raster, path_array)
+
+    logging.debug("Killing QGIS")
+    qgs.exitQgis()
 
 
 if __name__ == "__main__":
