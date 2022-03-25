@@ -14,7 +14,7 @@ import geopandas as gpd
 from glob import glob
 
 
-def config_qgis():
+def config_qgis() -> QgsApplication:
     """
     Initialize an instance of QGIS
 
@@ -28,7 +28,7 @@ def config_qgis():
     return qgs
 
 
-def qgis_load_layout(path):
+def qgis_load_layout(path: str) -> QgsPrintLayout:
     """
     Loads a QgsPrintLayout from a template file.
 
@@ -58,7 +58,7 @@ def load_vector_layer(path: str) -> QgsVectorLayer:
     return v_layer
 
 
-def export_map_test(title: str, layers: [QgsVectorLayer], output_path: str):
+def export_map_test(title: str, layers: [QgsVectorLayer], output_path: str) -> None:
     """
     Exports a map based on the test layout template
 
@@ -99,6 +99,7 @@ def export_map_test(title: str, layers: [QgsVectorLayer], output_path: str):
 
 def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
     layer = QgsVectorLayer(f"linestring?crs={crs}", "Path", "memory")
+    # noinspection PyArgumentList
     geometry = QgsGeometry.fromPolyline(map(lambda p: QgsPoint(p[0], p[1]), line))
 
     feature = QgsFeature()
@@ -140,33 +141,31 @@ Created on Thu Mar 10 17:46:39 2022
 """
 
 
-def raster_to_array(input_raster):
+def raster_to_array(input_raster: gdal.Dataset) -> np.ndarray:
     """
     Opens the given raster file using GDAL and converts it to an array.
 
-    :param input_raster: Path to the raster file
-    :return: The raster as an array
+    :param input_raster: the loaded raster
+    :return: The raster as a numpy array
     :author: Matthew
     """
-    raster = gdal.Open(input_raster)
-    band = raster.GetRasterBand(1)
+    band = input_raster.GetRasterBand(1)
 
     array = band.ReadAsArray()
     return array
 
 
-def coordinate_to_pixel_offset(input_raster: str, x: float, y: float) -> (int, int):
+def coordinate_to_pixel_offset(input_raster: gdal.Dataset, x: float, y: float) -> (int, int):
     """
     Takes a coordinate and transforms it to a pixel offset within the given input raster.
 
-    :param input_raster: The path to the raster
+    :param input_raster: the input raster
     :param x: The x coordinate, in the raster's CRS
     :param y: The y coordinate, in the raster's CRS
     :return: The pixel offset, as a tuple (x, y)
     :author: Matthew
     """
-    raster = gdal.Open(input_raster)
-    geotransform = raster.GetGeoTransform()
+    geotransform = input_raster.GetGeoTransform()
 
     origin_x = geotransform[0]
     origin_y = geotransform[3]
@@ -183,18 +182,17 @@ def coordinate_to_pixel_offset(input_raster: str, x: float, y: float) -> (int, i
     return x_offset, y_offset
 
 
-def pixel_offset_to_coordinate(input_raster: str, x_offset: int, y_offset: int) -> (float, float):
+def pixel_offset_to_coordinate(input_raster: gdal.Dataset, x_offset: int, y_offset: int) -> (float, float):
     """
     Convert a raster pixel location to a geotransformed coordinate
 
-    :param input_raster: Path to the input raster
+    :param input_raster: the input raster
     :param x_offset: x pixel offset
     :param y_offset: y pixel offset
     :return: The transformed coordinate in the raster's CRS as a tuple (x, y)
     :author: Matthew
     """
-    raster = gdal.Open(input_raster)
-    geotransform = raster.GetGeoTransform()
+    geotransform = input_raster.GetGeoTransform()
 
     # Get the raster's origin from the geotransform elements
     origin_x = geotransform[0]
@@ -209,11 +207,12 @@ def pixel_offset_to_coordinate(input_raster: str, x_offset: int, y_offset: int) 
     return coord_x, coord_y
 
 
-def create_path(cost_surface_raster: str, start_coord: (float, float), stop_coord: (float, float)) -> [(float, float)]:
+def create_path(cost_surface_raster: gdal.Dataset,
+                start_coord: (float, float), stop_coord: (float, float)) -> [(float, float)]:
     """
     Computes the least cost path over the given raster surface from a given start to stop coordinate
 
-    :param cost_surface_raster: Path to the raster
+    :param cost_surface_raster: GDAL-loaded raster
     :param start_coord: The start coordinate in the raster's CRS
     :param stop_coord: The stop coordinate in the raster's CRS
     :return: A list of X,Y tuples for the computed path, in the raster's original CRS
@@ -249,7 +248,7 @@ def create_path(cost_surface_raster: str, start_coord: (float, float), stop_coor
     return coordinate_list
 
 
-def array_to_raster(output_path: str, original_raster: str, array) -> None:
+def array_to_raster(output_path: str, original_raster: gdal.Dataset, array) -> None:
     """
     Writes an array to the output path as a raster, using the same geo transform as the original raster
 
@@ -259,8 +258,7 @@ def array_to_raster(output_path: str, original_raster: str, array) -> None:
     :return: None
     :author: Matthew
     """
-    raster = gdal.Open(original_raster)
-    geotransform = raster.GetGeoTransform()
+    geotransform = original_raster.GetGeoTransform()
 
     # Get the raster's origin from the geotransform elements
     origin_x = geotransform[0]
@@ -283,29 +281,25 @@ def array_to_raster(output_path: str, original_raster: str, array) -> None:
 
     # Set the out raster's srs to be the same as the original raster's srs
     out_raster_srs = osr.SpatialReference()
-    out_raster_srs.ImportFromWkt(raster.GetProjectionRef())
+    out_raster_srs.ImportFromWkt(original_raster.GetProjectionRef())
     out_raster.SetProjection(out_raster_srs.ExportToWkt())
     outband.FlushCache()
 
 
-def lcp(surface_raster: str,
-        output_raster: str, start_coordinate: (float, float), stop_coordinate: (float, float)) -> QgsVectorLayer:
+def lcp(surface_raster: str, start_coordinate: (float, float), stop_coordinate: (float, float)) -> QgsVectorLayer:
     """
     Helper function to run the LCP computation
 
     :param surface_raster: Path to the surface cost raster
-    :param output_raster:  Path to write the output path raster
     :param start_coordinate: Start coordinate in the cost raster's CRS
     :param stop_coordinate:  Stop coordinate in the cost raster's CRS
     :return: None
     :author: Matthew
     """
-    path_array = create_path(surface_raster, start_coordinate, stop_coordinate)
-
-    # TODO: Clean this up
     raster = gdal.Open(surface_raster)
+    path_array = create_path(raster, start_coordinate, stop_coordinate)
+
     return build_vector_line_layer(path_array, raster.GetProjectionRef())
-    # array_to_raster(output_raster, surface_raster, path_array)
 
 
 def clip(area_file, icechart_file):
@@ -389,10 +383,13 @@ def main():
         # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
         # 2. Rasterize clipped
-        # 3. Compute LCP, using clipped
+        # 3. Compute LCP, using clipped raster
         # 4. Generate map
         export_map_test(chart, [load_vector_layer(chart)], f"{chart}.pdf")
+        # 5. Add path status (yes/no) to pandas table
         pass
+    # 6. Write pandas table to csv
+    # 7. Print
 
     logging.debug("Hello World!")
 
@@ -418,12 +415,9 @@ def main():
     start_coordinate = (162100.17, 3162874.07)
     stop_coordinate = (245651.55, 3268528.81)
     cost_raster = os.path.abspath("test/ShouldWork.tif")
-    output_raster = "test/LeastPath.tif"
-    #
-    # path_array = create_path(cost_raster, start_coordinate, stop_coordinate)
-    layer = lcp(cost_raster, output_raster, start_coordinate, stop_coordinate)
+
+    layer = lcp(cost_raster, start_coordinate, stop_coordinate)
     export_map_test("Path!", [load_vector_layer("test/GH_CIS.shp"), layer], "test/path.pdf")
-    # array_to_raster(output_raster, cost_raster, path_array)
 
     logging.debug("Killing QGIS")
     qgs.exitQgis()
