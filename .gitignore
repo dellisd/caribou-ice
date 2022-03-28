@@ -5,3 +5,6 @@ test/LeastPath.tif
 test/output.csv
 test/clipped2/
 run.log
+
+# TODO: Remove this once it's not necessary anymore
+clipped.*
