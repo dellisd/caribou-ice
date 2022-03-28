@@ -137,7 +137,7 @@ def export_file_to_csv(path_df, filename):
     :return: None 
     :author: Olivia Dale
     """
-    df.to_csv('output.csv', index=False, header=header)
+    path_df.to_csv(filename, index=False, header=header)
 
 
 """
