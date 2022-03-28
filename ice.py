@@ -123,6 +123,34 @@ def export_csv(icepath_output, filename):
         writer = csv.writer(file)
         writer.writerows([header] + icepath_output)
     logging.info("The file has been exported")
+    
+
+def label_viability(row):
+    """
+    States path viability based on threshold.
+    
+    :param row: Sea ice concentration
+    :return: None 
+    :author: Olivia Dale
+    """
+    if row['CT'] >= 90 :
+        return 'Yes'
+    if row['CT'] < 90 :
+        return 'No'
+#Adds new field to the dataframe 
+df['path_viability'] = df.apply(lambda row: label_viability(row), axis=1)
+
+
+def export_file_to_csv(path_df, filename):
+    """
+    Exports ice path data to CSV file
+
+    :param path_df: Data to write to the CSV file 
+    :param filename: The file to write the CSV data to 
+    :return: None 
+    :author: Olivia Dale
+    """
+    df.to_csv('output.csv', index=False, header=header)
 
 
 """
