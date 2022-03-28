@@ -7,8 +7,7 @@ import csv
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import *
 from skimage.graph import route_through_array
-from osgeo import gdal
-from osgeo import osr
+from osgeo import gdal, osr, ogr
 import numpy as np
 import geopandas as gpd
 from glob import glob
@@ -317,6 +316,77 @@ def clip(area_file, icechart_file):
     return clipped
 
 
+def rasterize(input_gdf: gpd.GeoDataFrame, output_tiff: str, cell_size: int) -> gdal.Dataset:
+    """
+    Rasterizes a given vector GeoDataFrame and writes the output to a TIFF file.
+    TODO: Write files to temporary location during processing
+
+    :param input_gdf: The GeoDataFrame to be rasterized
+    :param output_tiff: The path to write the output to
+    :param cell_size: The cell size of the output raster
+    :return: A gdal Dataset of the output raster
+    :author: Sadaf
+    """
+    # Define NoData value of new raster
+    no_data_value = 0
+
+    # input_gdf to shapefile conversion:
+    input_gdf.to_file('clipped.shp')
+    # now there is a shapefile name of clipped.shp in the wrkdir
+    # filename of raster tiff that will be created
+    output_shp = output_tiff
+
+    # open the data source/input and read in the extent
+    source_ds = ogr.Open('clipped.shp')
+    lyr = source_ds.GetLayer(0)
+    inp_srs = lyr.GetSpatialRef()
+    '''
+    Checking if shapefile was loaded properly
+    if source_ds:
+        lyr=source_ds.GetLayer(0)
+        inp_srs = lyr.GetSpatialRef()
+        print("shapefile loaded")
+        print(lyr)
+        print(inp_srs)
+    else:
+        print("couldn't load shapefile")
+'''
+    # Extents
+    x_min, x_max, y_min, y_max = lyr.GetExtent(0)
+    logging.debug("Extent:", x_min, x_max, y_min, y_max)
+    x_res = int((x_max - x_min) / cell_size)
+    y_res = int((y_max - y_min) / cell_size)
+
+    # create the destination data source
+    output_driver = gdal.GetDriverByName('GTiff')
+    if os.path.exists(output_shp):
+        output_driver.Delete(output_shp)
+    output_ds = output_driver.Create(output_shp, x_res, y_res, 1, gdal.GDT_Int16)
+    output_ds.SetGeoTransform((x_min, cell_size, 0, y_max, 0, -cell_size))
+    output_ds.SetProjection(inp_srs.ExportToWkt())
+    output_lyr = output_ds.GetRasterBand(1)
+    output_lyr.SetNoDataValue(no_data_value)
+    # Rasterization
+    gdal.RasterizeLayer(output_ds, [1], lyr, options=["ATTRIBUTE=CT"])
+    # Viewing Band Statistics
+    logging.debug("Raster band count:", output_ds.RasterCount)
+    for band in range(output_ds.RasterCount):
+        band += 1
+        logging.debug("Getting band:", band)
+        output_ds_band = output_ds.GetRasterBand(band)
+        if output_ds_band is None:
+            continue
+        stats = output_ds_band.GetStatistics(True, True)
+        if stats is None:
+            continue
+        logging.debug("[ STATS ] =  Minimum=, Maximum=, Mean=, StdDev=", stats[0], stats[1], stats[2], stats[3])
+
+    if not os.path.exists(output_shp):
+        logging.error('Failed to create raster: %s' % output_shp)
+    # Return
+    return gdal.Open(output_shp)
+
+
 def parse_arg_coord(arg: str) -> (float, float):
     """
     Parsers a coordinate given in the program arguments and returns them as a tuple of floats
@@ -383,9 +453,13 @@ def main():
         # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
         # 2. Rasterize clipped
+        chart_tiff = rasterize(clipped, f"{chart}.tiff", 900)
         # 3. Compute LCP, using clipped raster
+        start_coordinate = (162100.17, 3162874.07)
+        stop_coordinate = (245651.55, 3268528.81)
+        vector = lcp(f"{chart}.tiff", start_coordinate, stop_coordinate)
         # 4. Generate map
-        export_map_test(chart, [load_vector_layer(chart)], f"{chart}.pdf")
+        export_map_test(chart, [load_vector_layer(chart), vector], f"{chart}.pdf")
         # 5. Add path status (yes/no) to pandas table
         pass
     # 6. Write pandas table to csv
