@@ -125,20 +125,7 @@ def export_csv(icepath_output, filename):
     logging.info("The file has been exported")
     
 
-def label_viability(row):
-    """
-    States path viability based on threshold.
-    
-    :param row: Sea ice concentration
-    :return: None 
-    :author: Olivia Dale
-    """
-    if row['CT'] >= 90 :
-        return 'Yes'
-    if row['CT'] < 90 :
-        return 'No'
-#Adds new field to the dataframe 
-df['path_viability'] = df.apply(lambda row: label_viability(row), axis=1)
+df['path_viability'] = df.apply(lambda row: "Yes" if row["CT"] >= 90 else "No", axis=1)
 
 
 def export_file_to_csv(path_df, filename):
