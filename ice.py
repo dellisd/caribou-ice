@@ -139,7 +139,7 @@ def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None
     # noinspection PyArgumentList
     project = QgsProject.instance()
     project.clear()
-    layout = qgis_load_layout("resources/test.qpt")
+    layout = qgis_load_layout("resources/maplayout.qpt")
 
     extent = None
     for layer in layers:
@@ -153,15 +153,15 @@ def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None
         project.addMapLayer(layer)
 
     # Update title and map extent
-    layout_title = layout.itemById("title")
+    layout_title = layout.itemById("date")
     layout_title.setText(title)
 
-    layout_map = layout.itemById("Map 1")
+    layout_map = layout.itemById("map")
     layout_map.zoomToExtent(extent)
 
     # Set the layout picture path because it somehow loses it
-    north_arrow = layout.itemById("North Arrow")
-    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_02.svg")
+    north_arrow = layout.itemById("north-arrow")
+    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_05.svg")
 
     # Export layout to PDF
     exporter = QgsLayoutExporter(layout)
