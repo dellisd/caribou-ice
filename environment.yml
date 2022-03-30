@@ -8,6 +8,6 @@ dependencies:
   - qgis
   - scikit-image
   - numpy
-  - osgeo
+  - gdal
   - geopandas
   

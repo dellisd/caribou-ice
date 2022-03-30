@@ -46,23 +46,61 @@ def qgis_load_layout(path: str) -> QgsPrintLayout:
     return layout
 
 
-def load_vector_layer(path: str) -> QgsVectorLayer:
-    v_layer = QgsVectorLayer(path, "ROI", "ogr")
+def load_vector_layer(path: str, name: str, style_file: str = None) -> QgsVectorLayer:
+    """
+    Helper function to load a vector layer for QGIS
+
+    :param path: Path to the vector data file to load
+    :param name: The name of the layer in the QGIS project (shown on the legend)
+    :param style_file: An optional path to a style file to apply to the layer
+    :return: The loaded QgsVectorLayer.
+    :author: Derek Ellis
+    """
+    v_layer = QgsVectorLayer(path, name, "ogr")
     if not v_layer.isValid():
-        logging.error("Layer failed to load!")
+        logging.error(f"Layer for {path} failed to load!")
     else:
-        logging.info("Loaded Vector Layer")
-        # noinspection PyArgumentList
-    # v_layer.loadNamedStyle("test/style.qml")
+        logging.info(f"Loaded Vector Layer {name}")
+    if style_file is not None:
+        if not os.path.isfile(style_file):
+            logging.warning(f"Style file {style_file} does not exist")
+        else:
+            # noinspection PyArgumentList
+            v_layer.loadNamedStyle(style_file)
     return v_layer
 
 
-def export_map_test(title: str, layers: [QgsVectorLayer], output_path: str) -> None:
+def load_raster_layer(path: str, name: str, style_file: str = None) -> QgsRasterLayer:
+    """
+    Helper function to load a raster layer for QGIS.
+
+    :param path: Path to the raster data file to load
+    :param name: The name of the layer in the QGIS project (shown on the legend)
+    :param style_file: An optional path to a style file to apply to the layer
+    :return: The loaded QgsRasterLayer.
+    :author: Derek Ellis
+    """
+    r_layer = QgsRasterLayer(path, name, "gdal")
+    if not r_layer.isValid():
+        logging.error(f"Layer for {path} failed to load!")
+    else:
+        logging.info(f"Loaded Raster Layer {name}")
+    if style_file is not None:
+        if not os.path.isfile(style_file):
+            logging.warning(f"Style file {style_file} does not exist")
+        else:
+            # noinspection PyArgumentList
+            r_layer.loadNamedStyle(style_file)
+
+    return r_layer
+
+
+def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None:
     """
     Exports a map based on the test layout template
 
     :param title: Title to be displayed in the exported map
-    :param layers: A list of vector layers to be loaded into the map
+    :param layers: A list of QgsMapLayer objects to be shown on the map
     :param output_path: Path to save the exported map to
     :author: Derek Ellis
     """
@@ -122,9 +160,9 @@ def export_csv(icepath_output, filename):
         writer = csv.writer(file)
         writer.writerows([header] + icepath_output)
     logging.info("The file has been exported")
-    
 
-df['path_viability'] = df.apply(lambda row: "Yes" if row["CT"] >= 90 else "No", axis=1)
+
+# df['path_viability'] = df.apply(lambda row: "Yes" if row["CT"] >= 90 else "No", axis=1)
 
 
 def export_file_to_csv(path_df, filename):
@@ -476,7 +514,7 @@ def main():
         stop_coordinate = (245651.55, 3268528.81)
         vector = lcp(f"{chart}.tiff", start_coordinate, stop_coordinate)
         # 4. Generate map
-        export_map_test(chart, [load_vector_layer(chart), vector], f"{chart}.pdf")
+        export_map_test(chart, [load_raster_layer(f"{chart}.tiff", chart, "test/raster.qml"), vector], f"{chart}.pdf")
         # 5. Add path status (yes/no) to pandas table
         pass
     # 6. Write pandas table to csv
@@ -508,7 +546,7 @@ def main():
     cost_raster = os.path.abspath("test/ShouldWork.tif")
 
     layer = lcp(cost_raster, start_coordinate, stop_coordinate)
-    export_map_test("Path!", [load_vector_layer("test/GH_CIS.shp"), layer], "test/path.pdf")
+    export_map_test("Path!", [load_vector_layer("test/GH_CIS.shp", "ROI"), layer], "test/path.pdf")
 
     logging.debug("Killing QGIS")
     qgs.exitQgis()
