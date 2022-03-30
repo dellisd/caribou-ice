@@ -180,25 +180,6 @@ def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
     return layer
 
 
-def export_csv(icepath_output, filename):
-    """
-    Exports ice path data to a CSV file
-
-    :param icepath_output: Data to write to the CSV file
-    :param filename: The file to write the CSV data to
-    :return: None
-    :author: Olivia Dale
-    """
-    with open(filename, 'w') as file:
-        header = ['chart_name', 'date', 'path_viability', 'length']
-        writer = csv.writer(file)
-        writer.writerows([header] + icepath_output)
-    logging.info("The file has been exported")
-
-
-# df['path_viability'] = df.apply(lambda row: "Yes" if row["CT"] >= 90 else "No", axis=1)
-
-
 def export_file_to_csv(path_df, filename):
     """
     Exports ice path data to CSV file
