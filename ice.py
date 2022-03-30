@@ -194,17 +194,15 @@ def export_file_to_csv(path_df, filename):
 
 
 """
-Function(s): Calculating Least Cost Path and returning a vector line
+Functions: Calculating Least Cost Path and returning a vector line
 
-Purpose: This function will take inputs of a cost raster based on
+Purpose: These functions will take inputs of a cost raster based on
 Canadian ice charts and  will (if possible) output a least-cost path line shapefile that can be accessed and used in 
 a QGIS map layout. 
 
-You can delete my docstring if you want Derek E!
-
 Created on Thu Mar 10 17:46:39 2022
 
-@author: Matthew
+@author: Matthew Wierdsma
 
 """
 
@@ -215,7 +213,7 @@ def raster_to_array(input_raster: gdal.Dataset) -> np.ndarray:
 
     :param input_raster: the loaded raster
     :return: The raster as a numpy array
-    :author: Matthew
+    :author: Matthew Wierdsma
     """
     band = input_raster.GetRasterBand(1)
 
@@ -231,8 +229,9 @@ def coordinate_to_pixel_offset(input_raster: gdal.Dataset, x: float, y: float) -
     :param x: The x coordinate, in the raster's CRS
     :param y: The y coordinate, in the raster's CRS
     :return: The pixel offset, as a tuple (x, y)
-    :author: Matthew
+    :author: Matthew Wierdsma
     """
+    # Get the geotransform information from the raster, and then extract X/Y origins and pixel information
     geotransform = input_raster.GetGeoTransform()
 
     origin_x = geotransform[0]
@@ -258,7 +257,7 @@ def pixel_offset_to_coordinate(input_raster: gdal.Dataset, x_offset: int, y_offs
     :param x_offset: x pixel offset
     :param y_offset: y pixel offset
     :return: The transformed coordinate in the raster's CRS as a tuple (x, y)
-    :author: Matthew
+    :author: Matthew Wierdsma
     """
     geotransform = input_raster.GetGeoTransform()
 
@@ -269,7 +268,7 @@ def pixel_offset_to_coordinate(input_raster: gdal.Dataset, x_offset: int, y_offs
     # Get pixel size from the raster's geotransform
     pixel_width = geotransform[1]
     pixel_height = geotransform[5]
-
+    # This gets you the x/y coordinates in the raster's CRS as a tuple, to be used in making a line.
     coord_x = origin_x + pixel_width * x_offset
     coord_y = origin_y + pixel_height * y_offset
     return coord_x, coord_y
@@ -284,7 +283,7 @@ def create_path(cost_surface_raster: gdal.Dataset,
     :param start_coord: The start coordinate in the raster's CRS
     :param stop_coord: The stop coordinate in the raster's CRS
     :return: A list of X,Y tuples for the computed path, in the raster's original CRS, or None if the path is impossible
-    :author: Matthew
+    :author: Matthew Wierdsma
     """
     # Load raster as an array
     cost_surface_array = raster_to_array(cost_surface_raster)
@@ -310,7 +309,7 @@ def create_path(cost_surface_raster: gdal.Dataset,
 
     # A path is created using the route_through_array function from skimage using the cost array, start and stop
     # indices as inputs. Variables indices, and weight are declared from the returns from the route_through_array
-    # function
+    # function. Catches ValueError when no viable path is found (try: route_through_array, except ValueError), returning None
     try:
         indices, weight = route_through_array(cost_surface_array, (start_index_y, start_index_x),
                                               (stop_index_y, stop_index_x), geometric=True, fully_connected=True)
@@ -318,14 +317,15 @@ def create_path(cost_surface_raster: gdal.Dataset,
         return None
     indices = np.array(indices).T
 
-    # The below section is being used for testing creation of a coordinate list to be converted to WKT/shapefile
-    # When complete. Work in progress for now. List creation works. 
+    # Creation of a coordinate list from the above indices created through LCP calculation, using pixel_offset_to_coordinate
+    # Coordinate list is then returned as a result of the function
     coordinate_list = []
+    # For all pixel offsets in the indices, get x/y offsets, and convert to coordinate using pixel offset to coordinate, append to coordinate list
     for offsets in indices:
         x_offset = offsets[0]
         y_offset = offsets[1]
         coordinate_list.append(pixel_offset_to_coordinate(cost_surface_raster, x_offset, y_offset))
-
+    # Raster path creation (from array)
     path = np.zeros_like(cost_surface_array)
     # Values along the path that are our LCP are declared as 255 values
     path[indices[0], indices[1]] = 255
@@ -335,12 +335,12 @@ def create_path(cost_surface_raster: gdal.Dataset,
 def array_to_raster(output_path: str, original_raster: gdal.Dataset, array) -> None:
     """
     Writes an array to the output path as a raster, using the same geo transform as the original raster
-
+    Originally necessary but now excluded, left for posterity
     :param output_path: Path to write the output raster
     :param original_raster: Path to the original raster
     :param array: Array to write to the output, as a raster
     :return: None
-    :author: Matthew
+    :author: Matthew Wierdsma
     """
     geotransform = original_raster.GetGeoTransform()
 
@@ -378,9 +378,10 @@ def lcp(surface_raster: str, start_coordinate: (float, float),
     :param surface_raster: Path to the surface cost raster
     :param start_coordinate: Start coordinate in the cost raster's CRS
     :param stop_coordinate:  Stop coordinate in the cost raster's CRS
-    :return: None
-    :author: Matthew
+    :return: Calls build_vector_line_layer using path array, if it exists
+    :author: Matthew Wierdsma
     """
+    # Open the raster of the surface, create a path array (coordinate list), return None if there is no viable path, and return the vector line layer if there is a path
     raster = gdal.Open(surface_raster)
     path_array = create_path(raster, start_coordinate, stop_coordinate)
     if path_array is None:
