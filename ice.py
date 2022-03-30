@@ -1,18 +1,19 @@
-# noinspection PyUnresolvedReferences
-import patch_env
-import pandas as pd
-import shapely.geometry
 import argparse
 import logging
 import os
-import csv
+from glob import glob
+
+import geopandas as gpd
+import numpy as np
+import pandas as pd
+import shapely.geometry
+from osgeo import gdal, osr, ogr
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import *
 from skimage.graph import route_through_array
-from osgeo import gdal, osr, ogr
-import numpy as np
-import geopandas as gpd
-from glob import glob
+
+# noinspection PyUnresolvedReferences
+import patch_env
 
 
 def config_qgis() -> QgsApplication:
@@ -309,7 +310,8 @@ def create_path(cost_surface_raster: gdal.Dataset,
 
     # A path is created using the route_through_array function from skimage using the cost array, start and stop
     # indices as inputs. Variables indices, and weight are declared from the returns from the route_through_array
-    # function. Catches ValueError when no viable path is found (try: route_through_array, except ValueError), returning None
+    # function. Catches ValueError when no viable path is found (try: route_through_array, except ValueError),
+    # returning None
     try:
         indices, weight = route_through_array(cost_surface_array, (start_index_y, start_index_x),
                                               (stop_index_y, stop_index_x), geometric=True, fully_connected=True)
@@ -317,10 +319,11 @@ def create_path(cost_surface_raster: gdal.Dataset,
         return None
     indices = np.array(indices).T
 
-    # Creation of a coordinate list from the above indices created through LCP calculation, using pixel_offset_to_coordinate
-    # Coordinate list is then returned as a result of the function
+    # Creation of a coordinate list from the above indices created through LCP calculation,
+    # using pixel_offset_to_coordinate Coordinate list is then returned as a result of the function
     coordinate_list = []
-    # For all pixel offsets in the indices, get x/y offsets, and convert to coordinate using pixel offset to coordinate, append to coordinate list
+    # For all pixel offsets in the indices, get x/y offsets, and convert to coordinate using pixel offset to
+    # coordinate, append to coordinate list
     for offsets in indices:
         x_offset = offsets[0]
         y_offset = offsets[1]
@@ -381,7 +384,8 @@ def lcp(surface_raster: str, start_coordinate: (float, float),
     :return: Calls build_vector_line_layer using path array, if it exists
     :author: Matthew Wierdsma
     """
-    # Open the raster of the surface, create a path array (coordinate list), return None if there is no viable path, and return the vector line layer if there is a path
+    # Open the raster of the surface, create a path array (coordinate list), return None if there is no viable path,
+    # and return the vector line layer if there is a path
     raster = gdal.Open(surface_raster)
     path_array = create_path(raster, start_coordinate, stop_coordinate)
     if path_array is None:
@@ -482,12 +486,13 @@ def rasterize(input_gdf: gpd.GeoDataFrame, output_tiff: str, cell_size: int) -> 
 def parse_arg_coord(arg: str) -> (float, float):
     """
     Parsers a coordinate given in the program arguments and returns them as a tuple of floats
-    e.g. "-75.2,123", or "-54, 234". Spaces are stripped out.
+    e.g. "-75.2,123", "(-75, 45)" or "-54, 234". Spaces are stripped out.
 
     :param arg: The argument in the coordinate format
     :return: The coordinate as a float tuple.
     :author: Derek Ellis
     """
+    arg = arg.removeprefix("(").removesuffix(")")
     parts = arg.split(",")
     if len(parts) != 2:
         raise SyntaxError(f"Two coordinate values expected, {len(parts)} were provided.")
@@ -508,30 +513,36 @@ def main():
 
     parser.add_argument("roi", type=str, help="A vector shapefile containing a polygon of the region of interest")
     parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
-    parser.add_argument("--start", type=str, help="Coordinate to start the path at, as an \"X,Y\" string")
-    parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string")
+    parser.add_argument("--start", type=str, help="Coordinate to start the path at, as an \"X,Y\" string",
+                        default="(162100.17, 3162874.07)")
+    parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string",
+                        default="(245651.55, 3268528.81)")
     parser.add_argument("--cellsize", type=int, help="Raster cellsize to use in the lowest cost path computation",
                         default=900)
     parser.add_argument("--out", type=str, help="Path to the directory to write all output files", default="out")
     args = parser.parse_args()
 
-    if args.start is not None:
-        try:
-            start = parse_arg_coord(args.start)
-        except ValueError:
-            logging.error("Invalid start coordinate value provided")
-            exit(-1)
-        except SyntaxError:
-            logging.error("Invalid start coordinate string provided")
+    try:
+        start = parse_arg_coord(args.start)
+    except ValueError:
+        logging.error("Invalid start coordinate value provided")
+        exit(-1)
+        return
+    except SyntaxError:
+        logging.error("Invalid start coordinate string provided")
+        exit(-1)
+        return
 
-    if args.end is not None:
-        try:
-            end = parse_arg_coord(args.start)
-        except ValueError:
-            logging.error("Invalid start coordinate value provided")
-            exit(-1)
-        except SyntaxError:
-            logging.error("Invalid start coordinate string provided")
+    try:
+        end = parse_arg_coord(args.end)
+    except ValueError:
+        logging.error("Invalid start coordinate value provided")
+        exit(-1)
+        return
+    except SyntaxError:
+        logging.error("Invalid start coordinate string provided")
+        exit(-1)
+        return
 
     charts = args.charts
     # Handle globbing in case the user's shell doesn't do this for them
@@ -563,12 +574,10 @@ def main():
         clipped = clip(args.roi, chart)
 
         # 2. Rasterize clipped vector data
-        chart_tiff = rasterize(clipped, f"{chart}.tiff", args.cellsize)
+        _ = rasterize(clipped, f"{chart}.tiff", args.cellsize)
 
         # 3. Compute LCP, using clipped raster
-        start_coordinate = (162100.17, 3162874.07)
-        stop_coordinate = (245651.55, 3268528.81)
-        vector = lcp(f"{chart}.tiff", start_coordinate, stop_coordinate)
+        vector = lcp(f"{chart}.tiff", start, end)
 
         # 4. Add path status (yes/no) to pandas table
         df = pd.concat(
