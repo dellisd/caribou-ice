@@ -1,10 +1,13 @@
 .idea/
+__pycache__/
 
 test/*.pdf
 test/LeastPath.tif
 test/output.csv
 test/clipped2/
 run.log
+
+out/
 
 # TODO: Remove this once it's not necessary anymore
 clipped.*
