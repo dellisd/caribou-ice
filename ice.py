@@ -600,11 +600,11 @@ def main():
     # 6. Write pandas table to csv
     export_file_to_csv(df, "out/report.csv")
     # 7. Print
-    print ("Generated Maps: ")
+    print(f"All output files written to {os.path.abspath(args.out)}")
+    print("Generated Maps:")
     for name in list_of_charts:
-        print (name + '.pdf')
-    print ("Generated a report of possible paths by chart at: ")
-    print ("report.csv")
+        print(f"\t{name}.pdf")
+    print("See report.csv for a table of all possible paths.")
     logging.debug("Killing QGIS")
     qgs.exitQgis()
 
