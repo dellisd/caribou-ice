@@ -161,7 +161,7 @@ def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None
 
     # Set the layout picture path because it somehow loses it
     north_arrow = layout.itemById("north-arrow")
-    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_05.svg")
+    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_04.svg")
 
     # Export layout to PDF
     exporter = QgsLayoutExporter(layout)
@@ -179,6 +179,7 @@ def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
     layer.dataProvider().addFeatures([feature])
 
     return layer
+
 
 """
 Function: Exporting the output of the Least Cost Path computation
@@ -590,6 +591,8 @@ def main():
 
         # 3. Compute LCP, using clipped raster
         vector = lcp(f"{chart}.tiff", start, end)
+        if vector is not None:
+            vector.loadNamedStyle("resources/line.qml")
 
         # 4. Add path status (yes/no) to pandas table
         df = pd.concat(
@@ -601,12 +604,13 @@ def main():
         land_layer = load_vector_layer("map_tmp.shp", "Land", "resources/land.qml")
         land_layer.setSubsetString("POLY_TYPE = 'L'")
 
+        ice_layer = load_vector_layer("map_tmp.shp", "Ice Concentration (Tenths)", "resources/ice.qml")
+        ice_layer.setSubsetString("POLY_TYPE = 'I' AND CT > '00'")
+
         # Add a background "water" layer to represent any areas without ice
         background_layer = bbox_vector_layer(clipped, "Water", "resources/water.qml")
-        export_map_test(chart,
-                        [background_layer,
-                         load_raster_layer(f"{chart}.tiff", chart_name, "resources/raster.qml"),
-                         land_layer, vector],
+        export_map_test(f"{tail} (No Path)" if vector is None else tail,
+                        [background_layer, ice_layer, land_layer, vector],
                         f"out/{chart_name}.pdf")
 
     # 6. Write pandas table to csv
