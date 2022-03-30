@@ -1,5 +1,6 @@
 # noinspection PyUnresolvedReferences
 import patch_env
+import pandas as pd
 import shapely.geometry
 import argparse
 import logging
@@ -141,6 +142,9 @@ def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None
 
     extent = None
     for layer in layers:
+        if layer is None:
+            continue
+
         if extent is None:
             extent = layer.extent()
         else:
@@ -176,25 +180,6 @@ def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
     return layer
 
 
-def export_csv(icepath_output, filename):
-    """
-    Exports ice path data to a CSV file
-
-    :param icepath_output: Data to write to the CSV file
-    :param filename: The file to write the CSV data to
-    :return: None
-    :author: Olivia Dale
-    """
-    with open(filename, 'w') as file:
-        header = ['chart_name', 'date', 'path_viability', 'length']
-        writer = csv.writer(file)
-        writer.writerows([header] + icepath_output)
-    logging.info("The file has been exported")
-
-
-# df['path_viability'] = df.apply(lambda row: "Yes" if row["CT"] >= 90 else "No", axis=1)
-
-
 def export_file_to_csv(path_df, filename):
     """
     Exports ice path data to CSV file
@@ -204,7 +189,7 @@ def export_file_to_csv(path_df, filename):
     :return: None 
     :author: Olivia Dale
     """
-    header = ['chart_name', 'CT', 'path_viability']
+    header = ['chart_name', 'path_viability']
     path_df.to_csv(filename, index=False, header=header)
 
 
@@ -298,7 +283,7 @@ def create_path(cost_surface_raster: gdal.Dataset,
     :param cost_surface_raster: GDAL-loaded raster
     :param start_coord: The start coordinate in the raster's CRS
     :param stop_coord: The stop coordinate in the raster's CRS
-    :return: A list of X,Y tuples for the computed path, in the raster's original CRS
+    :return: A list of X,Y tuples for the computed path, in the raster's original CRS, or None if the path is impossible
     :author: Matthew
     """
     # Load raster as an array
@@ -326,8 +311,11 @@ def create_path(cost_surface_raster: gdal.Dataset,
     # A path is created using the route_through_array function from skimage using the cost array, start and stop
     # indices as inputs. Variables indices, and weight are declared from the returns from the route_through_array
     # function
-    indices, weight = route_through_array(cost_surface_array, (start_index_y, start_index_x),
-                                          (stop_index_y, stop_index_x), geometric=True, fully_connected=True)
+    try:
+        indices, weight = route_through_array(cost_surface_array, (start_index_y, start_index_x),
+                                              (stop_index_y, stop_index_x), geometric=True, fully_connected=True)
+    except ValueError:
+        return None
     indices = np.array(indices).T
 
     # The below section is being used for testing creation of a coordinate list to be converted to WKT/shapefile
@@ -382,7 +370,8 @@ def array_to_raster(output_path: str, original_raster: gdal.Dataset, array) -> N
     outband.FlushCache()
 
 
-def lcp(surface_raster: str, start_coordinate: (float, float), stop_coordinate: (float, float)) -> QgsVectorLayer:
+def lcp(surface_raster: str, start_coordinate: (float, float),
+        stop_coordinate: (float, float)) -> QgsVectorLayer | None:
     """
     Helper function to run the LCP computation
 
@@ -394,6 +383,8 @@ def lcp(surface_raster: str, start_coordinate: (float, float), stop_coordinate: 
     """
     raster = gdal.Open(surface_raster)
     path_array = create_path(raster, start_coordinate, stop_coordinate)
+    if path_array is None:
+        return None
 
     return build_vector_line_layer(path_array, raster.GetProjectionRef())
 
@@ -504,7 +495,7 @@ def parse_arg_coord(arg: str) -> (float, float):
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s",
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s",
                         handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
 
     parser = argparse.ArgumentParser(
@@ -550,6 +541,8 @@ def main():
     qgs = config_qgis()
     logging.debug("QGIS started successfully")
 
+    df = pd.DataFrame({"chart_name": [], "path_viability": []})
+
     for chart in charts:
         # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
@@ -559,6 +552,9 @@ def main():
         start_coordinate = (162100.17, 3162874.07)
         stop_coordinate = (245651.55, 3268528.81)
         vector = lcp(f"{chart}.tiff", start_coordinate, stop_coordinate)
+
+        df = df.append({"chart_name": chart, "path_viability": "No" if vector is None else "Yes"}, ignore_index=True)
+
         # 4. Generate map
         clipped.to_file("map_tmp.shp")
         land_layer = load_vector_layer("map_tmp.shp", "Land", "test/land.qml")
@@ -573,6 +569,7 @@ def main():
         # 5. Add path status (yes/no) to pandas table
         pass
     # 6. Write pandas table to csv
+    export_file_to_csv(df, "report.csv")
     # 7. Print
 
     logging.debug("Hello World!")
