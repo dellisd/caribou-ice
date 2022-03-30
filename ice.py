@@ -138,7 +138,7 @@ def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None
     # noinspection PyArgumentList
     project = QgsProject.instance()
     project.clear()
-    layout = qgis_load_layout("test/test.qpt")
+    layout = qgis_load_layout("resources/test.qpt")
 
     extent = None
     for layer in layers:
@@ -404,7 +404,7 @@ def clip(area_file, icechart_file):
     bbox = shapely.geometry.box(*region.total_bounds)
 
     icechart_gdf = gpd.read_file(icechart_file)
-    clipped = gpd.clip(icechart_gdf, gpd.GeoSeries([bbox]))
+    clipped = gpd.clip(icechart_gdf, gpd.GeoSeries([bbox], crs=region.crs))
     return clipped
 
 
@@ -496,6 +496,10 @@ def parse_arg_coord(arg: str) -> (float, float):
 
 
 def main():
+    # Delete existing log file if it already exists
+    if os.path.exists("run.log"):
+        os.unlink("run.log")
+
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s",
                         handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
 
@@ -506,7 +510,9 @@ def main():
     parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
     parser.add_argument("--start", type=str, help="Coordinate to start the path at, as an \"X,Y\" string")
     parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string")
-    parser.add_argument("--cellsize", type=str, help="Cellsize to use in the lowest cost path computation")
+    parser.add_argument("--cellsize", type=int, help="Raster cellsize to use in the lowest cost path computation",
+                        default=900)
+    parser.add_argument("--out", type=str, help="Path to the directory to write all output files", default="out")
     args = parser.parse_args()
 
     if args.start is not None:
@@ -538,6 +544,10 @@ def main():
             logging.error(f"Shapefile \"{chart}\" does not exist, exiting.")
             exit(-1)
 
+    # Create output directory
+    if not os.path.isdir(args.out):
+        os.makedirs(args.out)
+
     # Load QGIS
     qgs = config_qgis()
     logging.debug("QGIS started successfully")
@@ -545,61 +555,42 @@ def main():
     df = pd.DataFrame({"chart_name": [], "path_viability": []})
 
     for chart in charts:
+        # Get the name of the chart file without the leading path parts or the file extension
+        _, tail = os.path.split(chart)
+        chart_name = tail.split(".")[0]
+
         # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
-        # 2. Rasterize clipped
-        chart_tiff = rasterize(clipped, f"{chart}.tiff", args.cellsize if args.cellsize else 900)
+
+        # 2. Rasterize clipped vector data
+        chart_tiff = rasterize(clipped, f"{chart}.tiff", args.cellsize)
+
         # 3. Compute LCP, using clipped raster
         start_coordinate = (162100.17, 3162874.07)
         stop_coordinate = (245651.55, 3268528.81)
         vector = lcp(f"{chart}.tiff", start_coordinate, stop_coordinate)
 
-        df = df.append({"chart_name": chart, "path_viability": "No" if vector is None else "Yes"}, ignore_index=True)
+        # 4. Add path status (yes/no) to pandas table
+        df = pd.concat(
+            [df, pd.DataFrame({"chart_name": [tail], "path_viability": ["No" if vector is None else "Yes"]})])
 
-        # 4. Generate map
+        # 5. Generate map
         clipped.to_file("map_tmp.shp")
-        land_layer = load_vector_layer("map_tmp.shp", "Land", "test/land.qml")
+        # Add the clipped vector data to display the land areas on the map
+        land_layer = load_vector_layer("map_tmp.shp", "Land", "resources/land.qml")
         land_layer.setSubsetString("POLY_TYPE = 'L'")
 
-        background_layer = bbox_vector_layer(clipped, "Water", "test/water.qml")
-
+        # Add a background "water" layer to represent any areas without ice
+        background_layer = bbox_vector_layer(clipped, "Water", "resources/water.qml")
         export_map_test(chart,
-                        [background_layer, load_raster_layer(f"{chart}.tiff", chart, "test/raster.qml"), land_layer,
-                         vector], f"{chart}.pdf")
-        # export_map_test(chart, [land_layer, vector], f"{chart}.pdf")
-        # 5. Add path status (yes/no) to pandas table
-        pass
+                        [background_layer,
+                         load_raster_layer(f"{chart}.tiff", chart_name, "resources/raster.qml"),
+                         land_layer, vector],
+                        f"out/{chart_name}.pdf")
+
     # 6. Write pandas table to csv
-    export_file_to_csv(df, "report.csv")
+    export_file_to_csv(df, "out/report.csv")
     # 7. Print
-
-    logging.debug("Hello World!")
-
-    # # Test QGIS PDF export
-    # logging.info("Testing QGIS PDF export")
-    # qgs = config_qgis()
-    # export_map_test("Hello World!", "test/GH_CIS.shp", "test/output.pdf")
-    # qgs.exitQgis()
-    #
-    # # Test CSV export
-    # logging.info("Testing CSV export")
-    # export_csv([["06092021_CEXPRWA.shp", False], ["06122021_CEXPRWA.shp", True]], "test/output.csv")
-    #
-    # # Test clipping
-    logging.info("Testing ROI clipping")
-    output = clip("test/GH_CIS.shp", "test/06092021_CEXPRWA.shp")
-    output.to_file("test/clipped2")
-    print(output)
-    #
-    # # Test LCP computation
-    gdal.GetDriverByName("GTiff")
-    logging.info("Testing LCP computation")
-    start_coordinate = (162100.17, 3162874.07)
-    stop_coordinate = (245651.55, 3268528.81)
-    cost_raster = os.path.abspath("test/ShouldWork.tif")
-
-    layer = lcp(cost_raster, start_coordinate, stop_coordinate)
-    export_map_test("Path!", [load_vector_layer("test/GH_CIS.shp", "ROI"), layer], "test/path.pdf")
 
     logging.debug("Killing QGIS")
     qgs.exitQgis()
