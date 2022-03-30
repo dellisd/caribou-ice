@@ -122,6 +122,22 @@ def export_csv(icepath_output, filename):
         writer = csv.writer(file)
         writer.writerows([header] + icepath_output)
     logging.info("The file has been exported")
+    
+
+df['path_viability'] = df.apply(lambda row: "Yes" if row["CT"] >= 90 else "No", axis=1)
+
+
+def export_file_to_csv(path_df, filename):
+    """
+    Exports ice path data to CSV file
+
+    :param path_df: Data to write to the CSV file 
+    :param filename: The file to write the CSV data to 
+    :return: None 
+    :author: Olivia Dale
+    """
+    header = ['chart_name', 'CT', 'path_viability']
+    path_df.to_csv(filename, index=False, header=header)
 
 
 """
