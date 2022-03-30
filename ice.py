@@ -1,5 +1,6 @@
 # noinspection PyUnresolvedReferences
 import patch_env
+import shapely.geometry
 import argparse
 import logging
 import os
@@ -46,6 +47,24 @@ def qgis_load_layout(path: str) -> QgsPrintLayout:
     return layout
 
 
+def apply_layer_style(layer: QgsMapLayer, style_file: str | None) -> None:
+    """
+    Helper function to apply a style from a qml file.
+    Applies the style if the file can be loaded, or logs a warning if it can not
+
+    :param layer: The QgsMapLayer to apply the style to.
+    :param style_file: Path to the qml style file
+    :return: None
+    :author: Derek Ellis
+    """
+    if style_file is not None:
+        if not os.path.isfile(style_file):
+            logging.warning(f"Style file {style_file} does not exist")
+        else:
+            # noinspection PyArgumentList
+            layer.loadNamedStyle(style_file)
+
+
 def load_vector_layer(path: str, name: str, style_file: str = None) -> QgsVectorLayer:
     """
     Helper function to load a vector layer for QGIS
@@ -61,12 +80,7 @@ def load_vector_layer(path: str, name: str, style_file: str = None) -> QgsVector
         logging.error(f"Layer for {path} failed to load!")
     else:
         logging.info(f"Loaded Vector Layer {name}")
-    if style_file is not None:
-        if not os.path.isfile(style_file):
-            logging.warning(f"Style file {style_file} does not exist")
-        else:
-            # noinspection PyArgumentList
-            v_layer.loadNamedStyle(style_file)
+    apply_layer_style(v_layer, style_file)
     return v_layer
 
 
@@ -85,14 +99,30 @@ def load_raster_layer(path: str, name: str, style_file: str = None) -> QgsRaster
         logging.error(f"Layer for {path} failed to load!")
     else:
         logging.info(f"Loaded Raster Layer {name}")
-    if style_file is not None:
-        if not os.path.isfile(style_file):
-            logging.warning(f"Style file {style_file} does not exist")
-        else:
-            # noinspection PyArgumentList
-            r_layer.loadNamedStyle(style_file)
-
+    apply_layer_style(r_layer, style_file)
     return r_layer
+
+
+def bbox_vector_layer(geom: gpd.GeoDataFrame | gpd.GeoSeries, name: str, style_file: str = None) -> QgsVectorLayer:
+    """
+    Takes a geopandas dataframe or series and creates a QgsVectorLayer from its bounds
+    Used for creating the "background" water layer in the map.
+
+    :param geom: The geopandas dataframe or series
+    :param name: Name of the layer
+    :param style_file: Path to a style file for the layer
+    :return: The QgsVectorLayer
+    """
+    layer = QgsVectorLayer(f"polygon?crs={geom.crs.to_wkt()}", name, "memory")
+    # noinspection PyArgumentList
+    geometry = QgsGeometry.fromWkt(shapely.geometry.box(*geom.total_bounds).wkt)
+
+    feature = QgsFeature()
+    feature.setGeometry(geometry)
+    layer.dataProvider().addFeatures([feature])
+
+    apply_layer_style(layer, style_file)
+    return layer
 
 
 def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None:
@@ -357,7 +387,8 @@ def lcp(surface_raster: str, start_coordinate: (float, float), stop_coordinate: 
 
 def clip(area_file, icechart_file):
     """
-    Clips an ice chart shapefile given a shapefile for the region of interest
+    Clips an ice chart shapefile given a shapefile for the region of interest.
+    The chart file will be clipped to the bounding box of the area file.
 
     :param area_file: Shapefile of the region of interest
     :param icechart_file: Shapefile of the ice chart data
@@ -365,8 +396,10 @@ def clip(area_file, icechart_file):
     :author: Sadaf
     """
     region = gpd.read_file(area_file)
+    bbox = shapely.geometry.box(*region.total_bounds)
+
     icechart_gdf = gpd.read_file(icechart_file)
-    clipped = gpd.clip(icechart_gdf, region)
+    clipped = gpd.clip(icechart_gdf, gpd.GeoSeries([bbox]))
     return clipped
 
 
@@ -514,7 +547,16 @@ def main():
         stop_coordinate = (245651.55, 3268528.81)
         vector = lcp(f"{chart}.tiff", start_coordinate, stop_coordinate)
         # 4. Generate map
-        export_map_test(chart, [load_raster_layer(f"{chart}.tiff", chart, "test/raster.qml"), vector], f"{chart}.pdf")
+        clipped.to_file("map_tmp.shp")
+        land_layer = load_vector_layer("map_tmp.shp", "Land", "test/land.qml")
+        land_layer.setSubsetString("POLY_TYPE = 'L'")
+
+        background_layer = bbox_vector_layer(clipped, "Water", "test/water.qml")
+
+        export_map_test(chart,
+                        [background_layer, load_raster_layer(f"{chart}.tiff", chart, "test/raster.qml"), land_layer,
+                         vector], f"{chart}.pdf")
+        # export_map_test(chart, [land_layer, vector], f"{chart}.pdf")
         # 5. Add path status (yes/no) to pandas table
         pass
     # 6. Write pandas table to csv
