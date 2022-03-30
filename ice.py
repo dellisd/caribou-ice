@@ -303,7 +303,20 @@ def create_path(cost_surface_raster: gdal.Dataset,
     """
     # Load raster as an array
     cost_surface_array = raster_to_array(cost_surface_raster)
-
+    # Exclude / Change values of our threshold (CT Below 90) to untraversable (-1)
+    cost_surface_array[cost_surface_array < 90] = -1
+    # Convert CT to costs (Inverse of CT = Cost, High Concentration = Lower Cost)
+    cost_surface_array[cost_surface_array == 90] = 10
+    cost_surface_array[cost_surface_array == 91] = 9
+    cost_surface_array[cost_surface_array == 92] = 8
+    cost_surface_array[cost_surface_array == 93] = 7
+    cost_surface_array[cost_surface_array == 94] = 6
+    cost_surface_array[cost_surface_array == 95] = 5
+    cost_surface_array[cost_surface_array == 96] = 4
+    cost_surface_array[cost_surface_array == 97] = 3
+    cost_surface_array[cost_surface_array == 98] = 2
+    cost_surface_array[cost_surface_array == 99] = 1
+    cost_surface_array[cost_surface_array == 100] = 0
     start_x, start_y = start_coord
     start_index_x, start_index_y = coordinate_to_pixel_offset(cost_surface_raster, start_x, start_y)
 
