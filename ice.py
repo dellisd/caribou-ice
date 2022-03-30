@@ -180,6 +180,17 @@ def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
 
     return layer
 
+"""
+Function: Exporting the output of the Least Cost Path computation
+
+Purpose: This function will take a pandas dataframe as input and will output
+a comma-separated values (csv) file that describes whether or not a path is possible. 
+
+Created on Wed. March 16 2022
+
+@author: Olivia Dale
+"""
+
 
 def export_file_to_csv(path_df, filename):
     """
@@ -188,9 +199,10 @@ def export_file_to_csv(path_df, filename):
     :param path_df: Data to write to the CSV file 
     :param filename: The file to write the CSV data to 
     :return: None 
-    :author: Olivia Dale
+    :author: Olivia 
     """
     header = ['chart_name', 'path_viability']
+    # Write object to a comma-separated values file without row names (index)
     path_df.to_csv(filename, index=False, header=header)
 
 
