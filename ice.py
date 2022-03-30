@@ -430,6 +430,7 @@ def main():
     parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
     parser.add_argument("--start", type=str, help="Coordinate to start the path at, as an \"X,Y\" string")
     parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string")
+    parser.add_argument("--cellsize", type=str, help="Cellsize to use in the lowest cost path computation")
     args = parser.parse_args()
 
     if args.start is not None:
@@ -469,7 +470,7 @@ def main():
         # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
         # 2. Rasterize clipped
-        chart_tiff = rasterize(clipped, f"{chart}.tiff", 900)
+        chart_tiff = rasterize(clipped, f"{chart}.tiff", args.cellsize if args.cellsize else 900)
         # 3. Compute LCP, using clipped raster
         start_coordinate = (162100.17, 3162874.07)
         stop_coordinate = (245651.55, 3268528.81)
