@@ -564,12 +564,12 @@ def main():
     logging.debug("QGIS started successfully")
 
     df = pd.DataFrame({"chart_name": [], "path_viability": []})
-
+    list_of_charts = []
     for chart in charts:
         # Get the name of the chart file without the leading path parts or the file extension
         _, tail = os.path.split(chart)
         chart_name = tail.split(".")[0]
-
+        list_of_charts.append(chart_name)
         # 1. Clip chart to region of interest
         clipped = clip(args.roi, chart)
 
@@ -600,7 +600,11 @@ def main():
     # 6. Write pandas table to csv
     export_file_to_csv(df, "out/report.csv")
     # 7. Print
-
+    print ("Generated Maps: ")
+    for name in list_of_charts:
+        print (name + '.pdf')
+    print ("Generated a report of possible paths by chart at: ")
+    print ("report.csv")
     logging.debug("Killing QGIS")
     qgs.exitQgis()
 
