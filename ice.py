@@ -14,6 +14,7 @@ import argparse
 import logging
 import os
 from glob import glob
+import tempfile
 
 import geopandas as gpd
 import numpy as np
@@ -431,46 +432,29 @@ def clip(area_file, icechart_file):
 
     icechart_gdf = gpd.read_file(icechart_file)
     clipped = gpd.clip(icechart_gdf, gpd.GeoSeries([bbox], crs=region.crs))
+    # Set the "weight" of land to 255
+    clipped.loc[clipped['POLY_TYPE'] == 'L', 'CT'] = '255'
     return clipped
 
 
-def rasterize(input_gdf: gpd.GeoDataFrame, output_tiff: str, cell_size: int) -> gdal.Dataset:
+def rasterize(input_shp: str, output_tiff: str, cell_size: int) -> gdal.Dataset:
     """
     Rasterizes a given vector GeoDataFrame and writes the output to a TIFF file.
-    TODO: Write files to temporary location during processing
 
-    :param input_gdf: The GeoDataFrame to be rasterized
+    :param input_shp: Path to the shapefile to be rasterized
     :param output_tiff: The path to write the output to
     :param cell_size: The cell size of the output raster
     :return: A gdal Dataset of the output raster
     :author: Sadaf
     """
-    # Set the "weight" of land to 255
-    input_gdf.loc[input_gdf['POLY_TYPE'] == 'L', 'CT'] = '255'
     # Define NoData value of new raster
     no_data_value = 0
 
-    # input_gdf to shapefile conversion:
-    input_gdf.to_file('clipped.shp')
-    # now there is a shapefile name of clipped.shp in the wrkdir
-    # filename of raster tiff that will be created
-    output_shp = output_tiff
-
     # open the data source/input and read in the extent
-    source_ds = ogr.Open('clipped.shp')
+    source_ds = ogr.Open(input_shp)
     lyr = source_ds.GetLayer(0)
     inp_srs = lyr.GetSpatialRef()
-    '''
-    Checking if shapefile was loaded properly
-    if source_ds:
-        lyr=source_ds.GetLayer(0)
-        inp_srs = lyr.GetSpatialRef()
-        print("shapefile loaded")
-        print(lyr)
-        print(inp_srs)
-    else:
-        print("couldn't load shapefile")
-'''
+
     # Extents
     x_min, x_max, y_min, y_max = lyr.GetExtent(0)
     logging.debug("Extent:", x_min, x_max, y_min, y_max)
@@ -479,9 +463,9 @@ def rasterize(input_gdf: gpd.GeoDataFrame, output_tiff: str, cell_size: int) -> 
 
     # create the destination data source
     output_driver = gdal.GetDriverByName('GTiff')
-    if os.path.exists(output_shp):
-        output_driver.Delete(output_shp)
-    output_ds = output_driver.Create(output_shp, x_res, y_res, 1, gdal.GDT_Int16)
+    if os.path.exists(output_tiff):
+        output_driver.Delete(output_tiff)
+    output_ds = output_driver.Create(output_tiff, x_res, y_res, 1, gdal.GDT_Int16)
     output_ds.SetGeoTransform((x_min, cell_size, 0, y_max, 0, -cell_size))
     output_ds.SetProjection(inp_srs.ExportToWkt())
     output_lyr = output_ds.GetRasterBand(1)
@@ -501,10 +485,10 @@ def rasterize(input_gdf: gpd.GeoDataFrame, output_tiff: str, cell_size: int) -> 
             continue
         logging.debug("[ STATS ] =  Minimum=, Maximum=, Mean=, StdDev=", stats[0], stats[1], stats[2], stats[3])
 
-    if not os.path.exists(output_shp):
-        logging.error('Failed to create raster: %s' % output_shp)
+    if not os.path.exists(output_tiff):
+        logging.error('Failed to create raster: %s' % output_tiff)
     # Return
-    return gdal.Open(output_shp)
+    return gdal.Open(output_tiff)
 
 
 def parse_arg_coord(arg: str) -> (float, float):
@@ -591,19 +575,23 @@ def main():
 
     df = pd.DataFrame({"chart_name": [], "path_viability": []})
     list_of_charts = []
+    scratch_dir = tempfile.TemporaryDirectory()
     for chart in charts:
         # Get the name of the chart file without the leading path parts or the file extension
         _, tail = os.path.split(chart)
         chart_name = tail.split(".")[0]
         list_of_charts.append(chart_name)
         # 1. Clip chart to region of interest
+        clipped_path = os.path.join(scratch_dir.name, "clipped.shp")
         clipped = clip(args.roi, chart)
+        clipped.to_file(clipped_path)
 
         # 2. Rasterize clipped vector data
-        _ = rasterize(clipped, f"{chart}.tiff", args.cellsize)
+        raster_path = os.path.join(scratch_dir.name, f"{tail}.tiff")
+        _ = rasterize(clipped_path, raster_path, args.cellsize)
 
         # 3. Compute LCP, using clipped raster
-        vector = lcp(f"{chart}.tiff", start, end)
+        vector = lcp(raster_path, start, end)
         if vector is not None:
             vector.loadNamedStyle("resources/line.qml")
 
@@ -612,12 +600,13 @@ def main():
             [df, pd.DataFrame({"chart_name": [tail], "path_viability": ["No" if vector is None else "Yes"]})])
 
         # 5. Generate map
-        clipped.to_file("map_tmp.shp")
+        map_tmp_path = os.path.join(scratch_dir.name, "map_tmp.shp")
+        clipped.to_file(map_tmp_path)
         # Add the clipped vector data to display the land areas on the map
-        land_layer = load_vector_layer("map_tmp.shp", "Land", "resources/land.qml")
+        land_layer = load_vector_layer(map_tmp_path, "Land", "resources/land.qml")
         land_layer.setSubsetString("POLY_TYPE = 'L'")
 
-        ice_layer = load_vector_layer("map_tmp.shp", "Ice Concentration (Tenths)", "resources/ice.qml")
+        ice_layer = load_vector_layer(map_tmp_path, "Ice Concentration\n(Tenths)", "resources/ice.qml")
         ice_layer.setSubsetString("POLY_TYPE = 'I' AND CT > '00'")
 
         # Add a background "water" layer to represent any areas without ice
@@ -628,14 +617,19 @@ def main():
 
     # 6. Write pandas table to csv
     export_file_to_csv(df, "out/report.csv")
+
     # 7. Print
     print(f"All output files written to {os.path.abspath(args.out)}")
     print("Generated Maps:")
     for name in list_of_charts:
         print(f"\t{name}.pdf")
     print("See report.csv for a table of all possible paths.")
+
     logging.debug("Killing QGIS")
     qgs.exitQgis()
+    # Temporary files must be cleaned up after QGIS is closed
+    logging.debug("Cleaning up temporary files")
+    scratch_dir.cleanup()
 
 
 if __name__ == "__main__":
