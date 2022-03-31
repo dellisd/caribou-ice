@@ -7,6 +7,9 @@ See README.md for usage instructions.
 @authors: Olivia Dale, Matthew Wierdsma, Derek Ellis, Sadaf Nahyaan
 """
 
+# noinspection PyUnresolvedReferences
+import patch_env
+
 import argparse
 import logging
 import os
@@ -20,9 +23,6 @@ from osgeo import gdal, osr, ogr
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import *
 from skimage.graph import route_through_array
-
-# noinspection PyUnresolvedReferences
-import patch_env
 
 """
 Function: Exporting PDF maps via QGIS
@@ -525,13 +525,6 @@ def parse_arg_coord(arg: str) -> (float, float):
 
 
 def main():
-    # Delete existing log file if it already exists
-    if os.path.exists("run.log"):
-        os.unlink("run.log")
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s",
-                        handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
-
     parser = argparse.ArgumentParser(
         description="Compute possible least-cost paths for caribou across a set of sea ice chart data")
 
@@ -543,8 +536,17 @@ def main():
                         default="(245651.55, 3268528.81)")
     parser.add_argument("--cellsize", type=int, help="Raster cellsize to use in the lowest cost path computation",
                         default=900)
-    parser.add_argument("--out", type=str, help="Path to the directory to write all output files", default="out")
+    parser.add_argument("--out", "-o", type=str, help="Path to the directory to write all output files", default="out")
+    parser.add_argument("--debug", help="Enable debug log details", action="store_true", default=False)
     args = parser.parse_args()
+
+    # Delete existing log file if it already exists
+    if os.path.exists("run.log"):
+        os.unlink("run.log")
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s [%(levelname)s] %(message)s",
+                        handlers=[logging.FileHandler("run.log"), logging.StreamHandler()])
 
     try:
         start = parse_arg_coord(args.start)
