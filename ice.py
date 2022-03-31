@@ -326,11 +326,10 @@ def create_path(cost_surface_raster: gdal.Dataset,
     # function. Catches ValueError when no viable path is found (try: route_through_array, except ValueError),
     # returning None
     try:
-        indices, weight = route_through_array(cost_surface_array, (start_index_y, start_index_x),
-                                              (stop_index_y, stop_index_x), geometric=True, fully_connected=True)
+        indices, weight = route_through_array(cost_surface_array.T, (start_index_x, start_index_y),
+                                              (stop_index_x, stop_index_y), geometric=True, fully_connected=True)
     except ValueError:
         return None
-    indices = np.array(indices).T
 
     # Creation of a coordinate list from the above indices created through LCP calculation,
     # using pixel_offset_to_coordinate Coordinate list is then returned as a result of the function
@@ -341,10 +340,7 @@ def create_path(cost_surface_raster: gdal.Dataset,
         x_offset = offsets[0]
         y_offset = offsets[1]
         coordinate_list.append(pixel_offset_to_coordinate(cost_surface_raster, x_offset, y_offset))
-    # Raster path creation (from array)
-    path = np.zeros_like(cost_surface_array)
-    # Values along the path that are our LCP are declared as 255 values
-    path[indices[0], indices[1]] = 255
+
     return coordinate_list
 
 
@@ -436,6 +432,8 @@ def rasterize(input_gdf: gpd.GeoDataFrame, output_tiff: str, cell_size: int) -> 
     :return: A gdal Dataset of the output raster
     :author: Sadaf
     """
+    # Set the "weight" of land to 255
+    input_gdf.loc[input_gdf['POLY_TYPE'] == 'L', 'CT'] = '255'
     # Define NoData value of new raster
     no_data_value = 0
 
