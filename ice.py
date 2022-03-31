@@ -1,3 +1,12 @@
+"""
+ice.py
+
+A command-line program for computing approximated potential paths across sea ice charts that caribou could take.
+See README.md for usage instructions.
+
+@authors: Olivia Dale, Matthew Wierdsma, Derek Ellis, Sadaf Nahyaan
+"""
+
 import argparse
 import logging
 import os
@@ -14,6 +23,15 @@ from skimage.graph import route_through_array
 
 # noinspection PyUnresolvedReferences
 import patch_env
+
+"""
+Function: Exporting PDF maps via QGIS
+
+Purpose: These functions help in loading a QGIS print layout template,
+loading vector and raster layers, and exporting everything as a PDF.
+
+@author: Derek Ellis
+"""
 
 
 def config_qgis() -> QgsApplication:
@@ -127,7 +145,7 @@ def bbox_vector_layer(geom: gpd.GeoDataFrame | gpd.GeoSeries, name: str, style_f
     return layer
 
 
-def export_map_test(title: str, layers: [QgsMapLayer], output_path: str) -> None:
+def export_map(title: str, layers: [QgsMapLayer], output_path: str) -> None:
     """
     Exports a map based on the test layout template
 
@@ -187,8 +205,6 @@ Function: Exporting the output of the Least Cost Path computation
 Purpose: This function will take a pandas dataframe as input and will output
 a comma-separated values (csv) file that describes whether or not a path is possible. 
 
-Created on Wed. March 16 2022
-
 @author: Olivia Dale
 """
 
@@ -214,10 +230,7 @@ Purpose: These functions will take inputs of a cost raster based on
 Canadian ice charts and  will (if possible) output a least-cost path line shapefile that can be accessed and used in 
 a QGIS map layout. 
 
-Created on Thu Mar 10 17:46:39 2022
-
 @author: Matthew Wierdsma
-
 """
 
 
@@ -607,9 +620,9 @@ def main():
 
         # Add a background "water" layer to represent any areas without ice
         background_layer = bbox_vector_layer(clipped, "Water", "resources/water.qml")
-        export_map_test(f"{tail} (No Path)" if vector is None else tail,
-                        [background_layer, ice_layer, land_layer, vector],
-                        f"out/{chart_name}.pdf")
+        export_map(f"{tail} (No Path)" if vector is None else tail,
+                   [background_layer, ice_layer, land_layer, vector],
+                   f"out/{chart_name}.pdf")
 
     # 6. Write pandas table to csv
     export_file_to_csv(df, "out/report.csv")
