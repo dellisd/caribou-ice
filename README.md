@@ -48,7 +48,7 @@ python ice.py test/GH_CIS.shp test/*_CEXPRWA.shp
 ## Supported Platforms
 
 This script should work across all platforms that are supported by the dependencies listed in
-the [conda environment](environment.yml) (e.g. QGIS). All of the most common platforms (Windows, Linux, macOS) are
+the [conda environment](environment.yml) (e.g. QGIS). All the most common platforms (Windows, Linux, macOS) are
 supported.
 
 ## Inputs
@@ -73,8 +73,9 @@ land, ice, and water data is taken into account when determining if a path is po
 
 ### Ice Charts
 
-Ice charts are read from shapefiles in the SIGRID-3 format. When analyzing potential paths across the ice, the script
-uses the `N_CT` field as the ice concentration measure. Currently, areas representing sea ice (i.e. `POLY_TYPE='I'`)
+Ice charts are read from shapefiles in the [SIGRID-3 format](https://library.wmo.int/doc_num.php?explnum_id=9270). When
+analyzing potential paths across the ice, the script uses the `N_CT` field as the ice concentration measure. Currently,
+areas representing sea ice (i.e. `POLY_TYPE='I'`)
 with a `N_CT` value of 0.9 or higher are considered to be traversable in the LCP computation in addition to
 land (`POLY_TYPE='L'`).
 
@@ -140,13 +141,18 @@ enabled by adding the `--debug` option when running the script.
 # FAQ
 
 * **Where can I find sea ice chart data?**  
-  Ice chart data can be obtained from the Canadian Ice Service (TODO: LINK!)
+  Ice chart data can be obtained from
+  the [Canadian Ice Service's archive](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml) (Weekly Regional Ice Data - E00
+  / ZIP).
 * **What file formats are accepted for input data?**  
-  This script has only been tested with Shapefiles (`.shp`), however other geospatial formats that can be loaded by gdal
-  _may_ work. The ice chart data attributes must follow the SIGRID-3 standard.
+  This script has only been tested with Shapefiles (`.shp`), however other geospatial formats that are supported
+  by [fiona](https://fiona.readthedocs.io/en/latest/) _may_ work. The ice chart data attributes _must_ follow the
+  SIGRID-3 standard.
+* **Is the older E00 format of ice charts supported?**  
+  No, since the `AVCE00` driver is not supported by fiona.
 * **Do I need to know how to code to use this script?**  
   A basic understanding of the command line can be helpful when using the script, however no coding is required to run
-  this script.
+  the script.
 
 ## Contact
 
