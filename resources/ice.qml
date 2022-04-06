@@ -1,12 +1,12 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis version="3.16.2-Hannover" styleCategories="Symbology|Legend">
-  <renderer-v2 type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" forceraster="0" enableorderby="0" attr=" to_int( &quot;CT&quot; )">
+  <renderer-v2 type="graduatedSymbol" symbollevels="0" graduatedMethod="GraduatedColor" forceraster="0" enableorderby="0" attr=" to_real( &quot;N_CT&quot; )">
     <ranges>
-      <range label="20" upper="20.000000000000000" lower="0.000000000000000" render="true" symbol="0"/>
-      <range label="40" upper="40.000000000000000" lower="20.000000000000000" render="true" symbol="1"/>
-      <range label="60" upper="60.000000000000000" lower="40.000000000000000" render="true" symbol="2"/>
-      <range label="80" upper="80.000000000000000" lower="60.000000000000000" render="true" symbol="3"/>
-      <range label="100" upper="100.000000000000000" lower="80.000000000000000" render="true" symbol="4"/>
+      <range label="2" upper="2.000000000000000" lower="0.000000000000000" render="true" symbol="0"/>
+      <range label="4" upper="4.000000000000000" lower="2.000000000000000" render="true" symbol="1"/>
+      <range label="6" upper="6.000000000000000" lower="4.000000000000000" render="true" symbol="2"/>
+      <range label="8" upper="8.000000000000000" lower="6.000000000000000" render="true" symbol="3"/>
+      <range label="10" upper="10.000000000000000" lower="8.000000000000000" render="true" symbol="4"/>
     </ranges>
     <symbols>
       <symbol type="fill" alpha="1" force_rhr="0" clip_to_extent="1" name="0">

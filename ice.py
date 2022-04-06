@@ -133,6 +133,7 @@ def bbox_vector_layer(geom: gpd.GeoDataFrame | gpd.GeoSeries, name: str, style_f
     :param name: Name of the layer
     :param style_file: Path to a style file for the layer
     :return: The QgsVectorLayer
+    :author: Derek Ellis
     """
     layer = QgsVectorLayer(f"polygon?crs={geom.crs.to_wkt()}", name, "memory")
     # noinspection PyArgumentList
@@ -189,6 +190,14 @@ def export_map(title: str, layers: [QgsMapLayer], output_path: str) -> None:
 
 
 def build_vector_line_layer(line: [(float, float)], crs: str) -> QgsVectorLayer:
+    """
+    Builds an in-memory vector layer of a LineString from a list of X,Y coordinates
+
+    :param line: A list of X, Y coordinate tuples representing the line
+    :param crs: The CRS that the line's coordinates are in
+    :return: A QgsVectorLayer of the line.
+    :author: Derek Ellis
+    """
     layer = QgsVectorLayer(f"linestring?crs={crs}", "Path", "memory")
     # noinspection PyArgumentList
     geometry = QgsGeometry.fromPolyline(map(lambda p: QgsPoint(p[0], p[1]), line))
@@ -210,7 +219,7 @@ a comma-separated values (csv) file that describes whether or not a path is poss
 """
 
 
-def export_file_to_csv(path_df, filename):
+def export_file_to_csv(path_df: pd.DataFrame, filename: str) -> None:
     """
     Exports ice path data to CSV file
 
@@ -318,17 +327,18 @@ def create_path(cost_surface_raster: gdal.Dataset,
     # Exclude / Change values of our threshold (CT Below 90) to untraversable (-1)
     cost_surface_array[cost_surface_array < 90] = -1
     # Convert CT to costs (Inverse of CT = Cost, High Concentration = Lower Cost)
-    cost_surface_array[cost_surface_array == 90] = 10
-    cost_surface_array[cost_surface_array == 91] = 9
-    cost_surface_array[cost_surface_array == 92] = 8
-    cost_surface_array[cost_surface_array == 93] = 7
-    cost_surface_array[cost_surface_array == 94] = 6
-    cost_surface_array[cost_surface_array == 95] = 5
-    cost_surface_array[cost_surface_array == 96] = 4
-    cost_surface_array[cost_surface_array == 97] = 3
-    cost_surface_array[cost_surface_array == 98] = 2
-    cost_surface_array[cost_surface_array == 99] = 1
-    cost_surface_array[cost_surface_array == 100] = 0
+    # BY CLIENT REQUEST
+    cost_surface_array[cost_surface_array == 90] = 11
+    cost_surface_array[cost_surface_array == 91] = 10
+    cost_surface_array[cost_surface_array == 92] = 9
+    cost_surface_array[cost_surface_array == 93] = 8
+    cost_surface_array[cost_surface_array == 94] = 7
+    cost_surface_array[cost_surface_array == 95] = 6
+    cost_surface_array[cost_surface_array == 96] = 5
+    cost_surface_array[cost_surface_array == 97] = 4
+    cost_surface_array[cost_surface_array == 98] = 3
+    cost_surface_array[cost_surface_array == 99] = 2
+    cost_surface_array[cost_surface_array == 100] = 1
     start_x, start_y = start_coord
     start_index_x, start_index_y = coordinate_to_pixel_offset(cost_surface_raster, start_x, start_y)
 
@@ -417,7 +427,7 @@ def lcp(surface_raster: str, start_coordinate: (float, float),
     return build_vector_line_layer(path_array, raster.GetProjectionRef())
 
 
-def clip(area_file, icechart_file):
+def clip(area_file: str, icechart_file: str) -> gpd.GeoDataFrame:
     """
     Clips an ice chart shapefile given a shapefile for the region of interest.
     The chart file will be clipped to the bounding box of the area file.
@@ -432,8 +442,10 @@ def clip(area_file, icechart_file):
 
     icechart_gdf = gpd.read_file(icechart_file)
     clipped = gpd.clip(icechart_gdf, gpd.GeoSeries([bbox], crs=region.crs))
+    # Copy N_CT values to Z_CT as integers
+    clipped['Z_CT'] = clipped['N_CT'].map(lambda x: f"{round(float(x) * 10)}" if x is not None else None)
     # Set the "weight" of land to 255
-    clipped.loc[clipped['POLY_TYPE'] == 'L', 'CT'] = '255'
+    clipped.loc[clipped['POLY_TYPE'] == 'L', 'Z_CT'] = '255'
     return clipped
 
 
@@ -471,7 +483,7 @@ def rasterize(input_shp: str, output_tiff: str, cell_size: int) -> gdal.Dataset:
     output_lyr = output_ds.GetRasterBand(1)
     output_lyr.SetNoDataValue(no_data_value)
     # Rasterization
-    gdal.RasterizeLayer(output_ds, [1], lyr, options=["ATTRIBUTE=CT"])
+    gdal.RasterizeLayer(output_ds, [1], lyr, options=["ATTRIBUTE=Z_CT"])
     # Viewing Band Statistics
     logging.debug("Raster band count:", output_ds.RasterCount)
     for band in range(output_ds.RasterCount):
@@ -514,13 +526,18 @@ def main():
 
     parser.add_argument("roi", type=str, help="A vector shapefile containing a polygon of the region of interest")
     parser.add_argument("charts", nargs="+", type=str, help="One or more shapefiles containing sea ice chart data")
-    parser.add_argument("--start", type=str, help="Coordinate to start the path at, as an \"X,Y\" string",
+    parser.add_argument("--start", type=str,
+                        help="Coordinate to start the path at, as an \"X,Y\" string. Defaults to (162100.17, "
+                             "3162874.07), coordinates of Gjoa Haven",
                         default="(162100.17, 3162874.07)")
-    parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string",
+    parser.add_argument("--end", type=str, help="Coordinate to end the path at, as an \"X,Y\" string. Defaults to ("
+                                                "245651.55, 3268528.81), coordinates of Taloyoak",
                         default="(245651.55, 3268528.81)")
-    parser.add_argument("--cellsize", type=int, help="Raster cellsize to use in the lowest cost path computation",
+    parser.add_argument("--cellsize", type=int, help="Raster cellsize to use in the lowest cost path computation. "
+                                                     "Default is 900.",
                         default=900)
-    parser.add_argument("--out", "-o", type=str, help="Path to the directory to write all output files", default="out")
+    parser.add_argument("--out", "-o", type=str, help="Path to the directory to write all output files. Defaults to "
+                                                      "./out", default="out")
     parser.add_argument("--debug", help="Enable debug log details", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -607,7 +624,7 @@ def main():
         land_layer.setSubsetString("POLY_TYPE = 'L'")
 
         ice_layer = load_vector_layer(map_tmp_path, "Ice Concentration\n(Tenths)", "resources/ice.qml")
-        ice_layer.setSubsetString("POLY_TYPE = 'I' AND CT > '00'")
+        ice_layer.setSubsetString("POLY_TYPE = 'I' AND N_CT >= 9.0")
 
         # Add a background "water" layer to represent any areas without ice
         background_layer = bbox_vector_layer(clipped, "Water", "resources/water.qml")
