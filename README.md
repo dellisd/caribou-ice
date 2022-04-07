@@ -134,9 +134,9 @@ Requirements:
 
 ### Logs
 
-In addition to logging all output to the console, a `run.log` is also created every time the script is run. By default,
-all messages with a severity of `INFO` or higher (including warnings and errors) are logged. Debug logging can be
-enabled by adding the `--debug` option when running the script.
+In addition to logging all output to the console, a `run.log` file is also created every time the script is run. By
+default, all messages with a severity of `INFO` or higher (including warnings and errors) are logged. Debug logging can
+be enabled by adding the `--debug` option when running the script.
 
 # FAQ
 
@@ -151,7 +151,7 @@ enabled by adding the `--debug` option when running the script.
 * **Is the older E00 format of ice charts supported?**  
   No, since the `AVCE00` driver is not supported by fiona.
 * **Do I need to know how to code to use this script?**  
-  A basic understanding of the command line can be helpful when using the script, however no coding is required to run
+  A basic understanding of the command line can be helpful, however no coding is required to run
   the script.
 
 ## Contact
