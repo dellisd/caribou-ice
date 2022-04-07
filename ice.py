@@ -624,7 +624,7 @@ def main():
         land_layer.setSubsetString("POLY_TYPE = 'L'")
 
         ice_layer = load_vector_layer(map_tmp_path, "Ice Concentration\n(Tenths)", "resources/ice.qml")
-        ice_layer.setSubsetString("POLY_TYPE = 'I' AND N_CT >= 9.0")
+        ice_layer.setSubsetString("POLY_TYPE = 'I'")
 
         # Add a background "water" layer to represent any areas without ice
         background_layer = bbox_vector_layer(clipped, "Water", "resources/water.qml")
