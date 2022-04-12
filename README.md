@@ -53,7 +53,7 @@ supported.
 
 ### Dependencies
 
-The main packages used by this script are QGIS, scikit-image, numpy, gdal, and geopandas. See [environment.yml](environmeny.yml) for more detail.
+The main packages used by this script are QGIS, scikit-image, numpy, gdal, and geopandas. See [environment.yml](environment.yml) for more detail.
 
 ## Inputs
 
