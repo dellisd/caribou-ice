@@ -51,6 +51,10 @@ This script should work across all platforms that are supported by the dependenc
 the [conda environment](environment.yml) (e.g. QGIS). All the most common platforms (Windows, Linux, macOS) are
 supported.
 
+### Dependencies
+
+The main packages used by this script are QGIS, scikit-image, numpy, gdal, and geopandas. See [environment.yml](environment.yml) for more detail.
+
 ## Inputs
 
 All paths passed to the script can either be absolute or relative paths.
@@ -138,6 +142,17 @@ In addition to logging all output to the console, a `run.log` file is also creat
 default, all messages with a severity of `INFO` or higher (including warnings and errors) are logged. Debug logging can
 be enabled by adding the `--debug` option when running the script.
 
+## Project Structure
+
+```
+resources/       -- QGIS template and style files
+test/            -- Sample Region of Interest and CIS chart shapefiles
+
+environment.yml  -- Conda environment
+ice.py           -- Main script
+patch_env.py     -- Helper script
+```
+
 # FAQ
 
 * **Where can I find sea ice chart data?**  
@@ -154,9 +169,35 @@ be enabled by adding the `--debug` option when running the script.
   A basic understanding of the command line can be helpful, however no coding is required to run
   the script.
 
-## Contact
+# Contact
 
 * Derek Ellis (derekellis@cmail.carleton.ca)
 * Olivia Dale (oliviadale@cmail.carleton.ca)
 * Matthew Wierdsma (matthewwierdsma@cmail.carleton.ca)
 * Sadaf Nahyaan (sadafnahyaan@cmail.carleton.ca)
+
+# License
+
+```
+MIT License
+
+Copyright (c) 2022 Derek Ellis, Olivia Dale, Matthew Wierdsma, Sadaf Nahyaan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
