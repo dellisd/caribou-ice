@@ -2,6 +2,8 @@
 
 Determine whether there exists a potential path for caribou to cross sea ice.
 
+<img src="https://user-images.githubusercontent.com/6743693/162862798-7335156e-b8bd-41ee-acc1-e301282d2905.png" height="500" align="center"/>
+
 # Running the Program
 
 A conda environment is provided in `environment.yml`. To install the environment, run the following commands in
