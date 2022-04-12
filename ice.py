@@ -181,7 +181,7 @@ def export_map(title: str, layers: [QgsMapLayer], output_path: str) -> None:
 
     # Set the layout picture path because it somehow loses it
     north_arrow = layout.itemById("north-arrow")
-    north_arrow.setPicturePath(f"{os.environ['CONDA_PREFIX']}/Library/svg/arrows/NorthArrow_04.svg")
+    north_arrow.setPicturePath("resources/NorthArrow_04.svg")
 
     # Export layout to PDF
     exporter = QgsLayoutExporter(layout)
