@@ -170,6 +170,8 @@ patch_env.py     -- Helper script
 * **Do I need to know how to code to use this script?**  
   A basic understanding of the command line can be helpful, however no coding is required to run
   the script.
+* **What Coordinate Reference System are the start and end coordinates in?**  
+  The CRS of the start and end points matches whatever CRS is being used for the CIS chart shapefiles.
 
 # Contact
 
